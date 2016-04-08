@@ -35,8 +35,8 @@ class Cron_Pixie {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
 		// AJAX handlers.
-		add_action( 'wp_ajax_cron_pixie_get_schedules', array( $this, 'get_schedules' ) );
-		add_action( 'wp_ajax_cron_pixie_run_event', array( $this, 'run_event' ) );
+		add_action( 'wp_ajax_cron_pixie_schedules', array( $this, 'ajax_schedules' ) );
+		add_action( 'wp_ajax_cron_pixie_events', array( $this, 'ajax_events' ) );
 
 		// Add a schedule of our own for testing.
 		add_filter( 'cron_schedules', array( $this, 'filter_cron_schedules' ) );
@@ -204,14 +204,14 @@ class Cron_Pixie {
 	 *
 	 * @return mixed|string|void
 	 */
-	public function get_schedules() {
+	public function ajax_schedules() {
 		$this->_ajax_return( $this->_get_schedules() );
 	}
 
 	/**
 	 * Run a cron event now rather than later.
 	 */
-	public function run_event() {
+	public function ajax_events() {
 		// TODO: Sanitize inputs!
 		$event         = $_POST['model'];
 		$event['args'] = empty( $event['args'] ) ? array() : $event['args'];

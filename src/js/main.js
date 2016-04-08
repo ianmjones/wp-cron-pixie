@@ -9,13 +9,9 @@ var CronPixie = CronPixie || {};
 	 */
 	var AdminAjaxSyncableMixin = {
 		url: ajaxurl,
+		action: 'cron_pixie_request',
 
 		sync: function( method, object, options ) {
-			// Reads work just fine.
-			if ( 'read' === method ) {
-				return Backbone.sync( method, object, options );
-			}
-
 			if ( typeof options.data === 'undefined' ) {
 				options.data = {};
 			}
@@ -24,8 +20,13 @@ var CronPixie = CronPixie || {};
 			options.data.action_type = method;
 
 			// If no action defined, set default.
-			if ( undefined === options.data.action ) {
-				options.data.action = 'cron_pixie_request';
+			if ( undefined === options.data.action && undefined !== this.action ) {
+				options.data.action = this.action;
+			}
+
+			// Reads work just fine.
+			if ( 'read' === method ) {
+				return Backbone.sync( method, object, options );
 			}
 
 			var json = this.toJSON();
@@ -74,6 +75,7 @@ var CronPixie = CronPixie || {};
 	 * Single cron event.
 	 */
 	CronPixie.EventModel = BaseModel.extend( {
+		action: 'cron_pixie_events',
 		defaults: {
 			schedule: null,
 			interval: null,
@@ -88,7 +90,7 @@ var CronPixie = CronPixie || {};
 	 * Collection of cron events.
 	 */
 	CronPixie.EventsCollection = BaseCollection.extend( {
-		url: ajaxurl,
+		action: 'cron_pixie_events',
 		model: CronPixie.EventModel
 	} );
 
@@ -96,6 +98,7 @@ var CronPixie = CronPixie || {};
 	 * Single cron schedule with nested cron events.
 	 */
 	CronPixie.ScheduleModel = BaseModel.extend( {
+		action: 'cron_pixie_schedules',
 		defaults: {
 			name: null,
 			interval: null,
@@ -108,7 +111,7 @@ var CronPixie = CronPixie || {};
 	 * Collection of cron schedules.
 	 */
 	CronPixie.SchedulesCollection = BaseCollection.extend( {
-		url: ajaxurl,
+		action: 'cron_pixie_schedules',
 		model: CronPixie.ScheduleModel
 	} );
 
@@ -200,7 +203,6 @@ var CronPixie = CronPixie || {};
 				this.model.save(
 					{ timestamp: timestamp, seconds_due: 0 },
 					{
-						data: { action: 'cron_pixie_run_event' },
 						success: function( model, response, options ) {
 							/*
 							 console.log( options );
@@ -267,19 +269,7 @@ var CronPixie = CronPixie || {};
 	 * Retrieves new data from server.
 	 */
 	CronPixie.refreshData = function() {
-		CronPixie.schedules.fetch( {
-			/*
-			 * These can be handy for debugging!
-			 *
-			 success: function( model, response, options ) {
-			 console.log( response );
-			 },
-			 error: function( model, response, options ) {
-			 console.log( response );
-			 },
-			 */
-			data: { action: 'cron_pixie_get_schedules' }
-		} );
+		CronPixie.schedules.fetch();
 	};
 
 	/**
