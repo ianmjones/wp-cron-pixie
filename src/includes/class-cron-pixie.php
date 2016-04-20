@@ -64,7 +64,7 @@ class Cron_Pixie {
 		?>
 		<!-- Schedule Item template -->
 		<script type="text/template" id="cron-pixie-schedule-item-tmpl">
-			<span class="cron-pixie-schedule-display"><%= display %></span>
+			<span class="cron-pixie-schedule-display" title="<%= name %>"><%= display %></span>
 			<ul class="cron-pixie-events"></ul>
 		</script>
 
