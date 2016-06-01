@@ -62,31 +62,9 @@ class Cron_Pixie {
 	 */
 	public function dashboard_widget_content() {
 		?>
-		<!-- Schedule Item template -->
-		<script type="text/template" id="cron-pixie-schedule-item-tmpl">
-			<span class="cron-pixie-schedule-display" title="<%= name %>"><%= display %></span>
-			<ul class="cron-pixie-events"></ul>
-		</script>
-
-		<!-- Event Item template -->
-		<script type="text/template" id="cron-pixie-event-item-tmpl">
-			<% if ( undefined == hook ) { %>
-			<span class="cron-pixie-event-empty"><%= CronPixie.strings.no_events %></span>
-			<% } else { %>
-			<span class="cron-pixie-event-run dashicons dashicons-controls-forward" title="<%- CronPixie.strings.run_now %>"></span>
-			<span class="cron-pixie-event-hook"><%= hook %></span>
-			<div class="cron-pixie-event-timestamp dashicons-before dashicons-clock">
-				<span class="cron-pixie-event-due"><%- CronPixie.strings.due %>:&nbsp;<%= new Date( timestamp * 1000 ).toLocaleString() %></span>
-				&nbsp;
-				<span class="cron-pixie-event-seconds-due">(<%= CronPixie.displayInterval( seconds_due ) %>)</span>
-			</div>
-			<% } %>
-		</script>
-
 		<!-- Main content -->
 		<div id="cron-pixie-main">
-			<h3>Schedules</h3>
-			<ul class="cron-pixie-schedules"></ul>
+			<cron-pixie-schedules :schedules="schedules"></cron-pixie-schedules>
 		</div>
 		<?php
 	}
@@ -103,17 +81,10 @@ class Cron_Pixie {
 
 		$script_handle = $this->plugin_meta['slug'] . '-main';
 
-		wp_enqueue_style(
-			$script_handle,
-			plugin_dir_url( $this->plugin_meta['file'] ) . 'css/main.css',
-			array(),
-			$this->plugin_meta['version']
-		);
-
 		wp_enqueue_script(
 			$script_handle,
-			plugin_dir_url( $this->plugin_meta['file'] ) . 'js/main.js',
-			array( 'jquery', 'backbone' ),
+			plugin_dir_url( $this->plugin_meta['file'] ) . 'js/build.js',
+			array(),
 			$this->plugin_meta['version'],
 			true // Load JS in footer so that templates in DOM can be referenced.
 		);

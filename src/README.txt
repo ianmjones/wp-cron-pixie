@@ -1,9 +1,9 @@
 === Plugin Name ===
 Contributors: ianmjones
 Donate link: http://www.ianmjones.com/
-Tags: cron, wp_cron, dashboard, admin, widget
+Tags: cron, cron, wp_cron, dashboard, admin, widget
 Requires at least: 3.9
-Tested up to: 4.5
+Tested up to: 4.5.2
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -13,6 +13,11 @@ A little dashboard widget to view the WordPress cron.
 == Description ==
 
 A little dashboard widget to view the WordPress cron, and run an event now rather than later.
+
+This plugin was built for the Building Reactive WordPress Plugins series of articles on the [Delicious Brains Blog](https://deliciousbrains.com/blog/).
+
+1. [Building Reactive WordPress Plugins – Part 1 – Backbone.js](https://deliciousbrains.com/building-reactive-wordpress-plugins-part-1-backbone-js/)
+1. [Building Reactive WordPress Plugins – Part 2 – Vue.js](https://deliciousbrains.com/building-reactive-wordpress-plugins-part-2-vue-js/)
 
 == Installation ==
 
@@ -38,5 +43,9 @@ A little dashboard widget to view the WordPress cron, and run an event now rathe
 
 == Changelog ==
 
+= 1.1 =
+* Vue.js frontend.
+
 = 1.0 =
 * Initial release.
+* Backbone.js frontend.

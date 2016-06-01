@@ -1,0 +1,30 @@
+{
+  "name": "wp-cron-pixie",
+  "version": "1.0.0",
+  "description": "A little dashboard widget to view the WordPress cron.",
+  "main": "src/js/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-js": "browserify -t vueify -e src/js/main.js -o src/js/build.js",
+    "watch-js": "watchify -v -t vueify -e src/js/main.js -o src/js/build.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://ianmjones@github.com/ianmjones/wp-cron-pixie.git"
+  },
+  "author": "Ian M. Jones <ian@ianmjones.com>",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/ianmjones/wp-cron-pixie/issues"
+  },
+  "homepage": "https://github.com/ianmjones/wp-cron-pixie#readme",
+  "devDependencies": {
+    "babel-core": "^6.9.1",
+    "babel-plugin-transform-runtime": "^6.9.0",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-runtime": "^6.9.2",
+    "vue": "^1.0.24",
+    "vue-resource": "^0.7.2",
+    "vueify": "^8.5.2"
+  }
+}

@@ -2,14 +2,13 @@
 
 /**
  * @link              https://github.com/ianmjones/wp-cron-pixie
- * @since             1.0
  * @package           Cron_Pixie
  *
  * @wordpress-plugin
  * Plugin Name:       WP Cron Pixie
  * Plugin URI:        https://github.com/ianmjones/wp-cron-pixie
  * Description:       A little dashboard widget to manage the WordPress cron.
- * Version:           1.0
+ * Version:           1.1
  * Author:            Ian M. Jones
  * Author URI:        http://www.ianmjones.com/
  * License:           GPL-2.0+
