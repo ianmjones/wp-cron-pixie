@@ -7,15 +7,6 @@
 	</ul>
 </template>
 
-<style>
-	.cron-pixie-events {
-		padding-left: 1em;
-	}
-	.cron-pixie-event-empty {
-		color: grey;
-	}
-</style>
-
 <script>
 	var CronPixieEvent = require( './event.vue' );
 
@@ -37,3 +28,12 @@
 		}
 	}
 </script>
+
+<style>
+	.cron-pixie-events {
+		padding-left: 1em;
+	}
+	.cron-pixie-event-empty {
+		color: grey;
+	}
+</style>

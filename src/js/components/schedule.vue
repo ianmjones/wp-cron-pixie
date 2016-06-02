@@ -3,12 +3,6 @@
 	<cron-pixie-events :events="schedule.events"></cron-pixie-events>
 </template>
 
-<style>
-	.cron-pixie-schedule-display {
-		font-weight: bold;
-	}
-</style>
-
 <script>
 	var CronPixieEvents = require( './events.vue' );
 
@@ -29,3 +23,9 @@
 		}
 	}
 </script>
+
+<style>
+	.cron-pixie-schedule-display {
+		font-weight: bold;
+	}
+</style>

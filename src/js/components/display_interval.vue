@@ -2,9 +2,6 @@
 	{{ displayInterval }}
 </template>
 
-<style>
-</style>
-
 <script>
 	export default {
 		props: [ 'interval' ],
@@ -57,3 +54,6 @@
 		}
 	}
 </script>
+
+<style>
+</style>

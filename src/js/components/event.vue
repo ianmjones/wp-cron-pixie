@@ -8,18 +8,6 @@
 	</div>
 </template>
 
-<style>
-	.cron-pixie-event-run:hover {
-		color: darkgreen;
-		cursor: pointer;
-	}
-	.cron-pixie-event-timestamp {
-		clear: both;
-		margin-left: 1em;
-		color: grey;
-	}
-</style>
-
 <script>
 	var CronPixieDisplayInterval = require( './display_interval.vue' );
 
@@ -79,3 +67,15 @@
 		}
 	}
 </script>
+
+<style>
+	.cron-pixie-event-run:hover {
+		color: darkgreen;
+		cursor: pointer;
+	}
+	.cron-pixie-event-timestamp {
+		clear: both;
+		margin-left: 1em;
+		color: grey;
+	}
+</style>
