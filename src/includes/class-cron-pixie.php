@@ -63,9 +63,7 @@ class Cron_Pixie {
 	public function dashboard_widget_content() {
 		?>
 		<!-- Main content -->
-		<div id="cron-pixie-main">
-			<cron-pixie-schedules :schedules="schedules"></cron-pixie-schedules>
-		</div>
+		<div id="cron-pixie-main"></div>
 		<?php
 	}
 
@@ -80,6 +78,13 @@ class Cron_Pixie {
 		}
 
 		$script_handle = $this->plugin_meta['slug'] . '-main';
+
+		wp_enqueue_style(
+			$script_handle,
+			plugin_dir_url( $this->plugin_meta['file'] ) . 'css/main.css',
+			array(),
+			$this->plugin_meta['version']
+		);
 
 		wp_enqueue_script(
 			$script_handle,

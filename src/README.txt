@@ -3,7 +3,7 @@ Contributors: ianmjones
 Donate link: http://www.ianmjones.com/
 Tags: cron, cron, wp_cron, dashboard, admin, widget
 Requires at least: 3.9
-Tested up to: 4.5.2
+Tested up to: 4.6.1
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -18,6 +18,7 @@ This plugin was built for the [Building Reactive WordPress Plugins](https://deli
 
 1. [Building Reactive WordPress Plugins – Part 1 – Backbone.js](https://deliciousbrains.com/building-reactive-wordpress-plugins-part-1-backbone-js/)
 1. [Building Reactive WordPress Plugins – Part 2 – Vue.js](https://deliciousbrains.com/building-reactive-wordpress-plugins-part-2-vue-js/)
+1. [Building Reactive WordPress Plugins – Part 3 – Elm](https://deliciousbrains.com/building-reactive-wordpress-plugins-part-3-elm/)
 
 == Installation ==
 
@@ -42,6 +43,9 @@ This plugin was built for the [Building Reactive WordPress Plugins](https://deli
 1. WP Cron Pixie widget.
 
 == Changelog ==
+
+= 1.2 =
+* Elm frontend.
 
 = 1.1 =
 * Vue.js frontend.
