@@ -8446,6 +8446,107 @@ var _elm_lang$html$Html_Attributes$classList = function (list) {
 };
 var _elm_lang$html$Html_Attributes$style = _elm_lang$virtual_dom$VirtualDom$style;
 
+var _elm_lang$html$Html_Events$keyCode = A2(_elm_lang$core$Json_Decode_ops[':='], 'keyCode', _elm_lang$core$Json_Decode$int);
+var _elm_lang$html$Html_Events$targetChecked = A2(
+	_elm_lang$core$Json_Decode$at,
+	_elm_lang$core$Native_List.fromArray(
+		['target', 'checked']),
+	_elm_lang$core$Json_Decode$bool);
+var _elm_lang$html$Html_Events$targetValue = A2(
+	_elm_lang$core$Json_Decode$at,
+	_elm_lang$core$Native_List.fromArray(
+		['target', 'value']),
+	_elm_lang$core$Json_Decode$string);
+var _elm_lang$html$Html_Events$defaultOptions = _elm_lang$virtual_dom$VirtualDom$defaultOptions;
+var _elm_lang$html$Html_Events$onWithOptions = _elm_lang$virtual_dom$VirtualDom$onWithOptions;
+var _elm_lang$html$Html_Events$on = _elm_lang$virtual_dom$VirtualDom$on;
+var _elm_lang$html$Html_Events$onFocus = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'focus',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onBlur = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'blur',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onSubmitOptions = _elm_lang$core$Native_Utils.update(
+	_elm_lang$html$Html_Events$defaultOptions,
+	{preventDefault: true});
+var _elm_lang$html$Html_Events$onSubmit = function (msg) {
+	return A3(
+		_elm_lang$html$Html_Events$onWithOptions,
+		'submit',
+		_elm_lang$html$Html_Events$onSubmitOptions,
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onCheck = function (tagger) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'change',
+		A2(_elm_lang$core$Json_Decode$map, tagger, _elm_lang$html$Html_Events$targetChecked));
+};
+var _elm_lang$html$Html_Events$onInput = function (tagger) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'input',
+		A2(_elm_lang$core$Json_Decode$map, tagger, _elm_lang$html$Html_Events$targetValue));
+};
+var _elm_lang$html$Html_Events$onMouseOut = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseout',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseOver = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseover',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseLeave = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseleave',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseEnter = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseenter',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseUp = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseup',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseDown = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mousedown',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onDoubleClick = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'dblclick',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onClick = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'click',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$Options = F2(
+	function (a, b) {
+		return {stopPropagation: a, preventDefault: b};
+	});
+
 //import Dict, List, Maybe, Native.Scheduler //
 
 var _evancz$elm_http$Native_Http = function() {
@@ -9001,11 +9102,32 @@ var _mgold$elm_date_format$Date_Format$format = F2(
 	});
 var _mgold$elm_date_format$Date_Format$formatISO8601 = _mgold$elm_date_format$Date_Format$format('%Y-%m-%dT%H:%M:%SZ');
 
+var _ianmjones$wp_cron_pixie$CronPixie$updateMatchedEvent = F3(
+	function (match, newEvent, event) {
+		return _elm_lang$core$Native_Utils.eq(match, event) ? newEvent : event;
+	});
+var _ianmjones$wp_cron_pixie$CronPixie$updateScheduledEvent = F3(
+	function (oldEvent, newEvent, schedule) {
+		var _p0 = schedule.events;
+		if (_p0.ctor === 'Just') {
+			return _elm_lang$core$Native_Utils.update(
+				schedule,
+				{
+					events: _elm_lang$core$Maybe$Just(
+						A2(
+							_elm_lang$core$List$map,
+							A2(_ianmjones$wp_cron_pixie$CronPixie$updateMatchedEvent, oldEvent, newEvent),
+							_p0._0))
+				});
+		} else {
+			return schedule;
+		}
+	});
 var _ianmjones$wp_cron_pixie$CronPixie$decodeTimerPeriod = function (string) {
 	var result = _elm_lang$core$String$toFloat(string);
-	var _p0 = result;
-	if (_p0.ctor === 'Ok') {
-		return _p0._0;
+	var _p1 = result;
+	if (_p1.ctor === 'Ok') {
+		return _p1._0;
 	} else {
 		return 5.0;
 	}
@@ -9020,8 +9142,8 @@ var _ianmjones$wp_cron_pixie$CronPixie$eventArgsDecoder = _elm_lang$core$Json_De
 		]));
 var _ianmjones$wp_cron_pixie$CronPixie$divideInterval = F3(
 	function (parts, milliseconds, dividers) {
-		var _p1 = dividers;
-		if (_p1.ctor === '::') {
+		var _p2 = dividers;
+		if (_p2.ctor === '::') {
 			return A4(
 				_ianmjones$wp_cron_pixie$CronPixie$divideInterval$,
 				parts,
@@ -9038,10 +9160,10 @@ var _ianmjones$wp_cron_pixie$CronPixie$divideInterval = F3(
 	});
 var _ianmjones$wp_cron_pixie$CronPixie$divideInterval$ = F4(
 	function (parts, milliseconds, divider, dividers) {
-		var _p2 = divider;
-		if (_p2.ctor === 'Just') {
-			var _p3 = _p2._0;
-			var count = (milliseconds / _p3.val) | 0;
+		var _p3 = divider;
+		if (_p3.ctor === 'Just') {
+			var _p4 = _p3._0;
+			var count = (milliseconds / _p4.val) | 0;
 			return (_elm_lang$core$Native_Utils.cmp(0, count) < 0) ? A3(
 				_ianmjones$wp_cron_pixie$CronPixie$divideInterval,
 				A2(
@@ -9049,9 +9171,9 @@ var _ianmjones$wp_cron_pixie$CronPixie$divideInterval$ = F4(
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						_elm_lang$core$Basics$toString(count),
-						_p3.name),
+						_p4.name),
 					parts),
-				A2(_elm_lang$core$Basics_ops['%'], milliseconds, _p3.val),
+				A2(_elm_lang$core$Basics_ops['%'], milliseconds, _p4.val),
 				dividers) : A3(_ianmjones$wp_cron_pixie$CronPixie$divideInterval, parts, milliseconds, dividers);
 		} else {
 			return parts;
@@ -9070,16 +9192,10 @@ var _ianmjones$wp_cron_pixie$CronPixie$intervals = function (model) {
 var _ianmjones$wp_cron_pixie$CronPixie$displayInterval = F2(
 	function (model, seconds) {
 		var milliseconds = seconds * 1000;
-		return (_elm_lang$core$Native_Utils.cmp(0, seconds + 60) > 0) ? model.strings.passed : ((_elm_lang$core$Native_Utils.cmp(0, seconds - model.timer_period) > 0) ? model.strings.now : A3(
-			_elm_lang$core$List$foldl,
-			F2(
-				function (x, y) {
-					return A2(_elm_lang$core$Basics_ops['++'], x, y);
-				}),
-			'',
-			A2(
-				_elm_lang$core$List$intersperse,
-				' ',
+		return (_elm_lang$core$Native_Utils.cmp(0, seconds + 60) > 0) ? model.strings.passed : ((_elm_lang$core$Native_Utils.cmp(0, seconds - model.timer_period) > 0) ? model.strings.now : A2(
+			_elm_lang$core$String$join,
+			' ',
+			_elm_lang$core$List$reverse(
 				A3(
 					_ianmjones$wp_cron_pixie$CronPixie$divideInterval,
 					_elm_lang$core$Native_List.fromArray(
@@ -9094,6 +9210,160 @@ var _ianmjones$wp_cron_pixie$CronPixie$due = function (timestamp) {
 		_elm_lang$core$Date$fromTime(
 			_elm_lang$core$Basics$toFloat(timestamp * 1000)));
 };
+var _ianmjones$wp_cron_pixie$CronPixie$Model = F4(
+	function (a, b, c, d) {
+		return {strings: a, nonce: b, timer_period: c, schedules: d};
+	});
+var _ianmjones$wp_cron_pixie$CronPixie$Strings = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return {no_events: a, due: b, now: c, passed: d, weeks_abrv: e, days_abrv: f, hours_abrv: g, minutes_abrv: h, seconds_abrv: i, run_now: j};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
+var _ianmjones$wp_cron_pixie$CronPixie$Schedule = F4(
+	function (a, b, c, d) {
+		return {name: a, display: b, interval: c, events: d};
+	});
+var _ianmjones$wp_cron_pixie$CronPixie$Event = F6(
+	function (a, b, c, d, e, f) {
+		return {schedule: a, interval: b, hook: c, args: d, timestamp: e, seconds_due: f};
+	});
+var _ianmjones$wp_cron_pixie$CronPixie$eventDecoder = A7(
+	_elm_lang$core$Json_Decode$object6,
+	_ianmjones$wp_cron_pixie$CronPixie$Event,
+	_elm_lang$core$Json_Decode$oneOf(
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(_elm_lang$core$Json_Decode_ops[':='], 'schedule', _elm_lang$core$Json_Decode$string),
+				_elm_lang$core$Json_Decode$succeed('false')
+			])),
+	_elm_lang$core$Json_Decode$maybe(
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'interval', _elm_lang$core$Json_Decode$int)),
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'hook', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'args', _ianmjones$wp_cron_pixie$CronPixie$eventArgsDecoder),
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'timestamp', _elm_lang$core$Json_Decode$int),
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'seconds_due', _elm_lang$core$Json_Decode$int));
+var _ianmjones$wp_cron_pixie$CronPixie$scheduleDecoder = A5(
+	_elm_lang$core$Json_Decode$object4,
+	_ianmjones$wp_cron_pixie$CronPixie$Schedule,
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'name', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'display', _elm_lang$core$Json_Decode$string),
+	_elm_lang$core$Json_Decode$maybe(
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'interval', _elm_lang$core$Json_Decode$int)),
+	_elm_lang$core$Json_Decode$maybe(
+		A2(
+			_elm_lang$core$Json_Decode_ops[':='],
+			'events',
+			_elm_lang$core$Json_Decode$list(_ianmjones$wp_cron_pixie$CronPixie$eventDecoder))));
+var _ianmjones$wp_cron_pixie$CronPixie$schedulesDecoder = _elm_lang$core$Json_Decode$list(_ianmjones$wp_cron_pixie$CronPixie$scheduleDecoder);
+var _ianmjones$wp_cron_pixie$CronPixie$decodeSchedules = function (json) {
+	var result = A2(_elm_lang$core$Json_Decode$decodeValue, _ianmjones$wp_cron_pixie$CronPixie$schedulesDecoder, json);
+	var _p5 = result;
+	if (_p5.ctor === 'Ok') {
+		return _p5._0;
+	} else {
+		return _elm_lang$core$Native_List.fromArray(
+			[]);
+	}
+};
+var _ianmjones$wp_cron_pixie$CronPixie$init = function (flags) {
+	return {
+		ctor: '_Tuple2',
+		_0: A4(
+			_ianmjones$wp_cron_pixie$CronPixie$Model,
+			flags.strings,
+			flags.nonce,
+			_ianmjones$wp_cron_pixie$CronPixie$decodeTimerPeriod(flags.timer_period),
+			_ianmjones$wp_cron_pixie$CronPixie$decodeSchedules(flags.schedules)),
+		_1: _elm_lang$core$Platform_Cmd$none
+	};
+};
+var _ianmjones$wp_cron_pixie$CronPixie$Divider = F2(
+	function (a, b) {
+		return {name: a, val: b};
+	});
+var _ianmjones$wp_cron_pixie$CronPixie$Flags = F4(
+	function (a, b, c, d) {
+		return {strings: a, nonce: b, timer_period: c, schedules: d};
+	});
+var _ianmjones$wp_cron_pixie$CronPixie$PostFail = function (a) {
+	return {ctor: 'PostFail', _0: a};
+};
+var _ianmjones$wp_cron_pixie$CronPixie$PostSucceed = function (a) {
+	return {ctor: 'PostSucceed', _0: a};
+};
+var _ianmjones$wp_cron_pixie$CronPixie$postEvent = F2(
+	function (nonce, event) {
+		var eventValue = _elm_lang$core$Json_Encode$object(
+			_elm_lang$core$Native_List.fromArray(
+				[
+					{
+					ctor: '_Tuple2',
+					_0: 'hook',
+					_1: _elm_lang$core$Json_Encode$string(event.hook)
+				},
+					{
+					ctor: '_Tuple2',
+					_0: 'args',
+					_1: _elm_lang$core$Json_Encode$object(
+						A2(
+							_elm_lang$core$List$map,
+							function (_p6) {
+								var _p7 = _p6;
+								return {
+									ctor: '_Tuple2',
+									_0: _p7._0,
+									_1: _elm_lang$core$Json_Encode$string(_p7._1)
+								};
+							},
+							event.args))
+				},
+					{
+					ctor: '_Tuple2',
+					_0: 'schedule',
+					_1: _elm_lang$core$Json_Encode$string(event.schedule)
+				},
+					{
+					ctor: '_Tuple2',
+					_0: 'timestamp',
+					_1: _elm_lang$core$Json_Encode$int(event.timestamp)
+				}
+				]));
+		var body = _evancz$elm_http$Http$multipart(
+			_elm_lang$core$Native_List.fromArray(
+				[
+					A2(_evancz$elm_http$Http$stringData, 'action', 'cron_pixie_events'),
+					A2(_evancz$elm_http$Http$stringData, 'nonce', nonce),
+					A2(
+					_evancz$elm_http$Http$stringData,
+					'model',
+					A2(_elm_lang$core$Json_Encode$encode, 0, eventValue))
+				]));
+		var url = '/wp-admin/admin-ajax.php';
+		return A3(
+			_elm_lang$core$Task$perform,
+			_ianmjones$wp_cron_pixie$CronPixie$PostFail,
+			_ianmjones$wp_cron_pixie$CronPixie$PostSucceed,
+			A3(_evancz$elm_http$Http$post, _elm_lang$core$Json_Decode$string, url, body));
+	});
+var _ianmjones$wp_cron_pixie$CronPixie$RunNow = function (a) {
+	return {ctor: 'RunNow', _0: a};
+};
 var _ianmjones$wp_cron_pixie$CronPixie$eventView = F2(
 	function (model, event) {
 		return A2(
@@ -9106,7 +9376,10 @@ var _ianmjones$wp_cron_pixie$CronPixie$eventView = F2(
 					_elm_lang$html$Html$span,
 					_elm_lang$core$Native_List.fromArray(
 						[
-							_elm_lang$html$Html_Attributes$class('cron-pixie-event-run dashicons dashicons-controls-forward')
+							_elm_lang$html$Html_Attributes$class('cron-pixie-event-run dashicons dashicons-controls-forward'),
+							_elm_lang$html$Html_Attributes$title(model.strings.run_now),
+							_elm_lang$html$Html_Events$onClick(
+							_ianmjones$wp_cron_pixie$CronPixie$RunNow(event))
 						]),
 					_elm_lang$core$Native_List.fromArray(
 						[])),
@@ -9169,8 +9442,8 @@ var _ianmjones$wp_cron_pixie$CronPixie$eventView = F2(
 	});
 var _ianmjones$wp_cron_pixie$CronPixie$eventsView = F2(
 	function (model, events) {
-		var _p4 = events;
-		if (_p4.ctor === 'Just') {
+		var _p8 = events;
+		if (_p8.ctor === 'Just') {
 			return A2(
 				_elm_lang$html$Html$ul,
 				_elm_lang$core$Native_List.fromArray(
@@ -9180,7 +9453,7 @@ var _ianmjones$wp_cron_pixie$CronPixie$eventsView = F2(
 				A2(
 					_elm_lang$core$List$map,
 					_ianmjones$wp_cron_pixie$CronPixie$eventView(model),
-					_p4._0));
+					_p8._0));
 		} else {
 			return _elm_lang$html$Html$text('');
 		}
@@ -9234,93 +9507,6 @@ var _ianmjones$wp_cron_pixie$CronPixie$view = function (model) {
 					model.schedules))
 			]));
 };
-var _ianmjones$wp_cron_pixie$CronPixie$Model = F4(
-	function (a, b, c, d) {
-		return {strings: a, nonce: b, timer_period: c, schedules: d};
-	});
-var _ianmjones$wp_cron_pixie$CronPixie$Strings = function (a) {
-	return function (b) {
-		return function (c) {
-			return function (d) {
-				return function (e) {
-					return function (f) {
-						return function (g) {
-							return function (h) {
-								return function (i) {
-									return function (j) {
-										return {no_events: a, due: b, now: c, passed: d, weeks_abrv: e, days_abrv: f, hours_abrv: g, minutes_abrv: h, seconds_abrv: i, run_now: j};
-									};
-								};
-							};
-						};
-					};
-				};
-			};
-		};
-	};
-};
-var _ianmjones$wp_cron_pixie$CronPixie$Schedule = F4(
-	function (a, b, c, d) {
-		return {name: a, display: b, interval: c, events: d};
-	});
-var _ianmjones$wp_cron_pixie$CronPixie$Event = F6(
-	function (a, b, c, d, e, f) {
-		return {schedule: a, interval: b, hook: c, args: d, timestamp: e, seconds_due: f};
-	});
-var _ianmjones$wp_cron_pixie$CronPixie$eventDecoder = A7(
-	_elm_lang$core$Json_Decode$object6,
-	_ianmjones$wp_cron_pixie$CronPixie$Event,
-	_elm_lang$core$Json_Decode$maybe(
-		A2(_elm_lang$core$Json_Decode_ops[':='], 'schedule', _elm_lang$core$Json_Decode$string)),
-	_elm_lang$core$Json_Decode$maybe(
-		A2(_elm_lang$core$Json_Decode_ops[':='], 'interval', _elm_lang$core$Json_Decode$int)),
-	A2(_elm_lang$core$Json_Decode_ops[':='], 'hook', _elm_lang$core$Json_Decode$string),
-	A2(_elm_lang$core$Json_Decode_ops[':='], 'args', _ianmjones$wp_cron_pixie$CronPixie$eventArgsDecoder),
-	A2(_elm_lang$core$Json_Decode_ops[':='], 'timestamp', _elm_lang$core$Json_Decode$int),
-	A2(_elm_lang$core$Json_Decode_ops[':='], 'seconds_due', _elm_lang$core$Json_Decode$int));
-var _ianmjones$wp_cron_pixie$CronPixie$scheduleDecoder = A5(
-	_elm_lang$core$Json_Decode$object4,
-	_ianmjones$wp_cron_pixie$CronPixie$Schedule,
-	A2(_elm_lang$core$Json_Decode_ops[':='], 'name', _elm_lang$core$Json_Decode$string),
-	A2(_elm_lang$core$Json_Decode_ops[':='], 'display', _elm_lang$core$Json_Decode$string),
-	_elm_lang$core$Json_Decode$maybe(
-		A2(_elm_lang$core$Json_Decode_ops[':='], 'interval', _elm_lang$core$Json_Decode$int)),
-	_elm_lang$core$Json_Decode$maybe(
-		A2(
-			_elm_lang$core$Json_Decode_ops[':='],
-			'events',
-			_elm_lang$core$Json_Decode$list(_ianmjones$wp_cron_pixie$CronPixie$eventDecoder))));
-var _ianmjones$wp_cron_pixie$CronPixie$schedulesDecoder = _elm_lang$core$Json_Decode$list(_ianmjones$wp_cron_pixie$CronPixie$scheduleDecoder);
-var _ianmjones$wp_cron_pixie$CronPixie$decodeSchedules = function (json) {
-	var result = A2(_elm_lang$core$Json_Decode$decodeValue, _ianmjones$wp_cron_pixie$CronPixie$schedulesDecoder, json);
-	var _p5 = result;
-	if (_p5.ctor === 'Ok') {
-		return _p5._0;
-	} else {
-		return _elm_lang$core$Native_List.fromArray(
-			[]);
-	}
-};
-var _ianmjones$wp_cron_pixie$CronPixie$init = function (flags) {
-	return {
-		ctor: '_Tuple2',
-		_0: A4(
-			_ianmjones$wp_cron_pixie$CronPixie$Model,
-			flags.strings,
-			flags.nonce,
-			_ianmjones$wp_cron_pixie$CronPixie$decodeTimerPeriod(flags.timer_period),
-			_ianmjones$wp_cron_pixie$CronPixie$decodeSchedules(flags.schedules)),
-		_1: _elm_lang$core$Platform_Cmd$none
-	};
-};
-var _ianmjones$wp_cron_pixie$CronPixie$Divider = F2(
-	function (a, b) {
-		return {name: a, val: b};
-	});
-var _ianmjones$wp_cron_pixie$CronPixie$Flags = F4(
-	function (a, b, c, d) {
-		return {strings: a, nonce: b, timer_period: c, schedules: d};
-	});
 var _ianmjones$wp_cron_pixie$CronPixie$FetchFail = function (a) {
 	return {ctor: 'FetchFail', _0: a};
 };
@@ -9344,8 +9530,8 @@ var _ianmjones$wp_cron_pixie$CronPixie$getSchedules = function (nonce) {
 };
 var _ianmjones$wp_cron_pixie$CronPixie$update = F2(
 	function (msg, model) {
-		var _p6 = msg;
-		switch (_p6.ctor) {
+		var _p9 = msg;
+		switch (_p9.ctor) {
 			case 'Tick':
 				return {
 					ctor: '_Tuple2',
@@ -9357,9 +9543,30 @@ var _ianmjones$wp_cron_pixie$CronPixie$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{schedules: _p6._0}),
+						{schedules: _p9._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
+			case 'FetchFail':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'RunNow':
+				var _p10 = _p9._0;
+				var dueEvent = _elm_lang$core$Native_Utils.update(
+					_p10,
+					{timestamp: _p10.timestamp - _p10.seconds_due, seconds_due: 0});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							schedules: A2(
+								_elm_lang$core$List$map,
+								A2(_ianmjones$wp_cron_pixie$CronPixie$updateScheduledEvent, _p10, dueEvent),
+								model.schedules)
+						}),
+					_1: A2(_ianmjones$wp_cron_pixie$CronPixie$postEvent, model.nonce, dueEvent)
+				};
+			case 'PostSucceed':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 			default:
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 		}

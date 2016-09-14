@@ -2,6 +2,7 @@ module CronPixie exposing (..)
 
 import Html exposing (Html, div, text, h3, ul, li, span)
 import Html.Attributes exposing (class, title)
+import Html.Events exposing (..)
 import Html.App
 import Date
 import Date.Format
@@ -10,8 +11,9 @@ import String
 import List exposing (head, tail, intersperse, foldl)
 import Maybe exposing (withDefault)
 import Task
-import Http
+import Http exposing (stringData, multipart)
 import Json.Decode exposing (..)
+import Json.Encode as Json
 
 
 -- MODEL
@@ -48,7 +50,7 @@ type alias Schedule =
 
 
 type alias Event =
-    { schedule : Maybe String
+    { schedule : String
     , interval : Maybe Int
     , hook : String
     , args : List ( String, String )
@@ -173,6 +175,9 @@ type Msg
     = Tick Time
     | FetchSucceed (List Schedule)
     | FetchFail Http.Error
+    | RunNow Event
+    | PostSucceed String
+    | PostFail Http.Error
 
 
 
@@ -189,7 +194,7 @@ view model =
         ]
 
 
-scheduleView : Model -> Schedule -> Html msg
+scheduleView : Model -> Schedule -> Html Msg
 scheduleView model schedule =
     li []
         [ span [ class "cron-pixie-schedule-display", title schedule.name ]
@@ -198,7 +203,7 @@ scheduleView model schedule =
         ]
 
 
-eventsView : Model -> Maybe (List Event) -> Html msg
+eventsView : Model -> Maybe (List Event) -> Html Msg
 eventsView model events =
     case events of
         Just events' ->
@@ -209,10 +214,10 @@ eventsView model events =
             text ""
 
 
-eventView : Model -> Event -> Html msg
+eventView : Model -> Event -> Html Msg
 eventView model event =
     li []
-        [ span [ class "cron-pixie-event-run dashicons dashicons-controls-forward" ]
+        [ span [ class "cron-pixie-event-run dashicons dashicons-controls-forward", title model.strings.run_now, onClick (RunNow event) ]
             []
         , span [ class "cron-pixie-event-hook" ]
             [ text event.hook ]
@@ -256,7 +261,7 @@ displayInterval model seconds =
             -- If due now or in next refresh period, show "now".
             model.strings.now
         else
-            divideInterval [] milliseconds (intervals model) |> intersperse " " |> foldl (++) ""
+            divideInterval [] milliseconds (intervals model) |> List.reverse |> String.join " "
 
 
 divideInterval : List String -> Int -> List Divider -> List String
@@ -302,6 +307,19 @@ update msg model =
         FetchFail err ->
             ( model, Cmd.none )
 
+        RunNow event ->
+            let
+                dueEvent =
+                    { event | timestamp = (event.timestamp - event.seconds_due), seconds_due = 0 }
+            in
+                ( { model | schedules = List.map (updateScheduledEvent event dueEvent) model.schedules }, postEvent model.nonce dueEvent )
+
+        PostSucceed schedules ->
+            ( model, Cmd.none )
+
+        PostFail err ->
+            ( model, Cmd.none )
+
 
 getSchedules : String -> Cmd Msg
 getSchedules nonce =
@@ -324,7 +342,7 @@ scheduleDecoder =
 
 eventDecoder : Decoder Event
 eventDecoder =
-    object6 Event (maybe ("schedule" := string)) (maybe ("interval" := int)) ("hook" := string) ("args" := eventArgsDecoder) ("timestamp" := int) ("seconds_due" := int)
+    object6 Event (oneOf [ "schedule" := string, succeed "false" ]) (maybe ("interval" := int)) ("hook" := string) ("args" := eventArgsDecoder) ("timestamp" := int) ("seconds_due" := int)
 
 
 eventArgsDecoder : Decoder (List ( String, String ))
@@ -361,6 +379,49 @@ decodeTimerPeriod string =
 
             Err error ->
                 5.0
+
+
+updateScheduledEvent : Event -> Event -> Schedule -> Schedule
+updateScheduledEvent oldEvent newEvent schedule =
+    case schedule.events of
+        Just events ->
+            { schedule | events = Just <| List.map (updateMatchedEvent oldEvent newEvent) events }
+
+        Nothing ->
+            schedule
+
+
+updateMatchedEvent : Event -> Event -> Event -> Event
+updateMatchedEvent match newEvent event =
+    if match == event then
+        newEvent
+    else
+        event
+
+
+postEvent : String -> Event -> Cmd Msg
+postEvent nonce event =
+    let
+        url =
+            "/wp-admin/admin-ajax.php"
+
+        eventValue =
+            Json.object
+                [ ( "hook", Json.string event.hook )
+                , ( "args", Json.object (List.map (\( key, val ) -> ( key, Json.string val )) event.args) )
+                , ( "schedule", Json.string event.schedule )
+                , ( "timestamp", Json.int event.timestamp )
+                ]
+
+        body =
+            multipart
+                [ stringData "action" "cron_pixie_events"
+                , stringData "nonce" nonce
+                , stringData "model" (Json.encode 0 eventValue)
+                  -- , stringData "model" (Json.encode 0 eventValue)
+                ]
+    in
+        Task.perform PostFail PostSucceed (Http.post string url body)
 
 
 

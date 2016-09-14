@@ -189,7 +189,7 @@ class Cron_Pixie {
 	 */
 	public function ajax_events() {
 		// TODO: Sanitize inputs!
-		$event         = $_POST['model'];
+		$event = json_decode( stripcslashes( $_POST['model'] ), true );
 		$event['args'] = empty( $event['args'] ) ? array() : $event['args'];
 
 		$now       = time();
