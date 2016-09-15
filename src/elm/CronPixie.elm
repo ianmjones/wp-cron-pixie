@@ -8,7 +8,7 @@ import Date
 import Date.Format
 import Time exposing (Time, second)
 import String
-import List exposing (head, tail, intersperse, foldl)
+import List exposing (head, tail, reverse)
 import Maybe exposing (withDefault)
 import Task
 import Http exposing (stringData, multipart)
@@ -121,7 +121,7 @@ eventsView model events =
             ul [ class "cron-pixie-events" ]
                 (List.map (eventView model) events')
 
-        _ ->
+        Nothing ->
             text ""
 
 
@@ -145,7 +145,11 @@ eventView model event =
 
 due : Int -> String
 due timestamp =
-    timestamp * 1000 |> toFloat |> Date.fromTime |> Date.Format.format "%Y-%m-%d %H:%M:%S"
+    timestamp
+        * 1000
+        |> toFloat
+        |> Date.fromTime
+        |> Date.Format.format "%Y-%m-%d %H:%M:%S"
 
 
 intervals : Model -> List Divider
@@ -172,7 +176,7 @@ displayInterval model seconds =
             -- If due now or in next refresh period, show "now".
             model.strings.now
         else
-            divideInterval [] milliseconds (intervals model) |> List.reverse |> String.join " "
+            divideInterval [] milliseconds (intervals model) |> reverse |> String.join " "
 
 
 divideInterval : List String -> Int -> List Divider -> List String
