@@ -1,9 +1,9 @@
 === Plugin Name ===
 Contributors: ianmjones
-Donate link: http://www.ianmjones.com/
-Tags: cron, cron, wp_cron, dashboard, admin, widget
+Donate link: https://www.ianmjones.com/
+Tags: cron, wp-cron, dashboard, admin, widget
 Requires at least: 3.9
-Tested up to: 4.6.1
+Tested up to: 4.7.2
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -43,6 +43,9 @@ This plugin was built for the [Building Reactive WordPress Plugins](https://deli
 1. WP Cron Pixie widget.
 
 == Changelog ==
+
+= 1.3 =
+* Elm 0.18 frontend.
 
 = 1.2 =
 * Elm frontend.
