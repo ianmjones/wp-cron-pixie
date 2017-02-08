@@ -117,9 +117,9 @@ scheduleView model schedule =
 eventsView : Model -> Maybe (List Event) -> Html Msg
 eventsView model events =
     case events of
-        Just events' ->
+        Just events_ ->
             ul [ class "cron-pixie-events" ]
-                (List.map (eventView model) events')
+                (List.map (eventView model) events_)
 
         Nothing ->
             text ""
@@ -183,22 +183,22 @@ divideInterval : List String -> Int -> List Divider -> List String
 divideInterval parts milliseconds dividers =
     case dividers of
         e1 :: rest ->
-            divideInterval' parts milliseconds (head dividers) (withDefault [] (tail dividers))
+            divideInterval_ parts milliseconds (head dividers) (withDefault [] (tail dividers))
 
         _ ->
             parts
 
 
-divideInterval' : List String -> Int -> Maybe Divider -> List Divider -> List String
-divideInterval' parts milliseconds divider dividers =
+divideInterval_ : List String -> Int -> Maybe Divider -> List Divider -> List String
+divideInterval_ parts milliseconds divider dividers =
     case divider of
-        Just divider' ->
+        Just divider_ ->
             let
                 count =
-                    milliseconds // divider'.val
+                    milliseconds // divider_.val
             in
                 if 0 < count then
-                    divideInterval ((toString count ++ divider'.name) :: parts) (milliseconds % divider'.val) dividers
+                    divideInterval ((toString count ++ divider_.name) :: parts) (milliseconds % divider_.val) dividers
                 else
                     divideInterval parts milliseconds dividers
 
