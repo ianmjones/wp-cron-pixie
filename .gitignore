@@ -3,3 +3,7 @@ node_modules
 /src/js/build.js
 elm-stuff
 /src/js/CronPixie.js
+builds
+vendor
+.coveralls.yml
+npm-debug.log*

@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-js": "browserify -e src/js/main.js -o src/js/build.js",
     "watch-js": "watchify -v -e src/js/main.js -o src/js/build.js",
-    "build-elm": "elm make src/elm/CronPixie.elm --output=src/js/CronPixie.js",
+    "build-elm": "elm-format src/elm/ --yes && elm make src/elm/CronPixie.elm --output=src/js/CronPixie.js",
     "watch-elm": "chokidar '**/*.elm' -c 'npm run build-elm'",
     "watch": "npm run watch-js & npm run watch-elm"
   },
