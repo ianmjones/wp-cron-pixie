@@ -3,7 +3,6 @@ module CronPixie exposing (..)
 import Html exposing (Html, div, text, h3, ul, li, span)
 import Html.Attributes exposing (class, title)
 import Html.Events exposing (..)
-import Html.App
 import Date
 import Date.Format
 import Time exposing (Time, second)
@@ -11,9 +10,10 @@ import String
 import List exposing (head, tail, reverse)
 import Maybe exposing (withDefault)
 import Task
-import Http exposing (stringData, multipart)
+import Http exposing (stringPart, multipartBody, encodeUri)
 import Json.Decode exposing (..)
 import Json.Encode as Json
+import Result.Extra exposing (unpack)
 
 
 -- MODEL
@@ -84,11 +84,9 @@ init flags =
 
 type Msg
     = Tick Time
-    | FetchSucceed (List Schedule)
-    | FetchFail Http.Error
+    | Fetch (Result Http.Error (List Schedule))
     | RunNow Event
-    | PostSucceed String
-    | PostFail Http.Error
+    | UpdateEvent (Result Http.Error String)
 
 
 
@@ -172,7 +170,7 @@ displayInterval model seconds =
         if 0 > (seconds + 60) then
             -- Cron runs max every 60 seconds.
             model.strings.passed
-        else if 0 > (seconds - model.timer_period) then
+        else if 0 > (toFloat seconds - model.timer_period) then
             -- If due now or in next refresh period, show "now".
             model.strings.now
         else
@@ -216,10 +214,10 @@ update msg model =
         Tick newTime ->
             ( model, getSchedules model.nonce )
 
-        FetchSucceed schedules ->
+        Fetch (Ok schedules) ->
             ( { model | schedules = schedules }, Cmd.none )
 
-        FetchFail err ->
+        Fetch (Err _) ->
             ( model, Cmd.none )
 
         RunNow event ->
@@ -229,20 +227,20 @@ update msg model =
             in
                 ( { model | schedules = List.map (updateScheduledEvent event dueEvent) model.schedules }, postEvent model.nonce dueEvent )
 
-        PostSucceed schedules ->
+        UpdateEvent (Ok schedules) ->
             ( model, Cmd.none )
 
-        PostFail err ->
+        UpdateEvent (Err _) ->
             ( model, Cmd.none )
 
 
 getSchedules : String -> Cmd Msg
 getSchedules nonce =
     let
-        url =
-            Http.url "/wp-admin/admin-ajax.php" [ ( "action", "cron_pixie_schedules" ), ( "nonce", nonce ) ]
+        encodedUrl =
+            url "/wp-admin/admin-ajax.php" [ ( "action", "cron_pixie_schedules" ), ( "nonce", nonce ) ]
     in
-        Task.perform FetchFail FetchSucceed (Http.get schedulesDecoder url)
+        Http.send Fetch (Http.get encodedUrl schedulesDecoder)
 
 
 schedulesDecoder : Decoder (List Schedule)
@@ -252,12 +250,12 @@ schedulesDecoder =
 
 scheduleDecoder : Decoder Schedule
 scheduleDecoder =
-    object4 Schedule ("name" := string) ("display" := string) (maybe ("interval" := int)) (maybe ("events" := (list eventDecoder)))
+    map4 Schedule (field "name" string) (field "display" string) (maybe (field "interval" int)) (maybe (field "events" (list eventDecoder)))
 
 
 eventDecoder : Decoder Event
 eventDecoder =
-    object6 Event (oneOf [ "schedule" := string, succeed "false" ]) (maybe ("interval" := int)) ("hook" := string) ("args" := eventArgsDecoder) ("timestamp" := int) ("seconds_due" := int)
+    map6 Event (oneOf [ field "schedule" string, succeed "false" ]) (maybe (field "interval" int)) (field "hook" string) (field "args" eventArgsDecoder) (field "timestamp" int) (field "seconds_due" int)
 
 
 eventArgsDecoder : Decoder (List ( String, String ))
@@ -329,14 +327,34 @@ postEvent nonce event =
                 ]
 
         body =
-            multipart
-                [ stringData "action" "cron_pixie_events"
-                , stringData "nonce" nonce
-                , stringData "model" (Json.encode 0 eventValue)
+            multipartBody
+                [ stringPart "action" "cron_pixie_events"
+                , stringPart "nonce" nonce
+                , stringPart "model" (Json.encode 0 eventValue)
                   -- , stringData "model" (Json.encode 0 eventValue)
                 ]
     in
-        Task.perform PostFail PostSucceed (Http.post string url body)
+        Http.send UpdateEvent (Http.post url body string)
+
+
+url : String -> List ( String, String ) -> String
+url baseUrl args =
+    case args of
+        [] ->
+            baseUrl
+
+        _ ->
+            baseUrl ++ "?" ++ String.join "&" (List.map queryPair args)
+
+
+queryPair : ( String, String ) -> String
+queryPair ( key, value ) =
+    queryEscape key ++ "=" ++ queryEscape value
+
+
+queryEscape : String -> String
+queryEscape string =
+    String.join "+" (String.split "%20" (encodeUri string))
 
 
 
@@ -352,9 +370,9 @@ subscriptions model =
 -- MAIN
 
 
-main : Program Flags
+main : Program Flags Model Msg
 main =
-    Html.App.programWithFlags
+    Html.programWithFlags
         { init = init
         , view = view
         , update = update
