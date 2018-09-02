@@ -7,9 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-js": "browserify -e src/js/main.js -o src/js/build.js",
     "watch-js": "watchify -v -e src/js/main.js -o src/js/build.js",
-    "build-elm": "elm-format src/elm/ --yes && elm make src/elm/CronPixie.elm --output=src/js/CronPixie.js",
+    "build-elm": "elm-format src/elm/ --yes && elm make src/elm/CronPixie.elm --output=src/js/CronPixie.js --yes",
     "watch-elm": "chokidar '**/*.elm' -c 'npm run build-elm'",
-    "watch": "npm run watch-js & npm run watch-elm"
+    "build": "npm run build-elm && npm run build-js",
+    "watch": "npm run build && npm run watch-js & npm run watch-elm"
   },
   "repository": {
     "type": "git",
@@ -21,5 +22,11 @@
     "url": "https://github.com/ianmjones/wp-cron-pixie/issues"
   },
   "homepage": "https://github.com/ianmjones/wp-cron-pixie#readme",
-  "devDependencies": {}
+  "devDependencies": {
+    "browserify": "^16.2.2",
+    "chokidar-cli": "^1.2.1",
+    "elm": "^0.18.0",
+    "elm-format": "^0.5.2",
+    "watchify": "^3.11.0"
+  }
 }

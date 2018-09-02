@@ -1,5 +1,4 @@
 <?php
 chdir( $root_dir );
-system( 'npm run build-elm' );
-system( 'npm run build-js' );
+system( 'npm run build' );
 chdir( $src_dir );
