@@ -13,7 +13,6 @@ import Task
 import Http exposing (stringPart, multipartBody, encodeUri)
 import Json.Decode exposing (..)
 import Json.Encode as Json
-import Result.Extra exposing (unpack)
 
 
 -- MODEL

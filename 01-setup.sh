@@ -10,4 +10,4 @@ rm -rf ./builds ./elm-stuff ./node_modules ./npm-debug.log* ./src/js/CronPixie.j
 #
 # Set up local tools.
 #
-npm install --no-optional
+npm install --no-optional --no-audit
