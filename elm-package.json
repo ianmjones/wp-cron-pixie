@@ -1,5 +1,5 @@
 {
-    "version": "1.3.0",
+    "version": "1.3.1",
     "summary": "A little dashboard widget to view the WordPress cron.",
     "repository": "https://github.com/ianmjones/wp-cron-pixie.git",
     "license": "GPL-2.0",
