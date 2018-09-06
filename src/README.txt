@@ -44,6 +44,9 @@ This plugin was built for the [Building Reactive WordPress Plugins](https://deli
 
 == Changelog ==
 
+= 1.4 =
+* Elm 0.19 frontend.
+
 = 1.3.1 =
 * Minor updates to framework and build tools.
 * Tested with WP 4.9.8.

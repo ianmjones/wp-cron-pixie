@@ -1,18 +1,19 @@
-module CronPixie exposing (..)
+module CronPixie exposing (Divider, Event, Flags, Model, Msg(..), Schedule, Strings, decodeSchedules, decodeTimerPeriod, displayInterval, divideInterval, divideInterval_, due, eventArgsDecoder, eventDecoder, eventView, eventsView, getSchedules, init, intervals, main, postEvent, queryEscape, queryPair, scheduleDecoder, scheduleView, schedulesDecoder, subscriptions, update, updateMatchedEvent, updateScheduledEvent, url, view)
 
-import Html exposing (Html, div, text, h3, ul, li, span)
-import Html.Attributes exposing (class, title)
-import Html.Events exposing (..)
 import Date
 import Date.Format
-import Time exposing (Time, second)
-import String
-import List exposing (head, tail, reverse)
-import Maybe exposing (withDefault)
-import Task
-import Http exposing (stringPart, multipartBody, encodeUri)
+import Html exposing (Html, div, h3, li, span, text, ul)
+import Html.Attributes exposing (class, title)
+import Html.Events exposing (..)
+import Http exposing (encodeUri, multipartBody, stringPart)
 import Json.Decode exposing (..)
 import Json.Encode as Json
+import List exposing (head, reverse, tail)
+import Maybe exposing (withDefault)
+import String
+import Task
+import Time exposing (Time, second)
+
 
 
 -- MODEL
@@ -130,12 +131,12 @@ eventView model event =
         , span [ class "cron-pixie-event-hook" ]
             [ text event.hook ]
         , div [ class "cron-pixie-event-timestamp dashicons-before dashicons-clock" ]
-            [ text " "
+            [ text "\u{00A0}"
             , span [ class "cron-pixie-event-due" ]
-                [ text (model.strings.due ++ ": " ++ (due event.timestamp)) ]
-            , text " "
+                [ text (model.strings.due ++ ": " ++ due event.timestamp) ]
+            , text "\u{00A0}"
             , span [ class "cron-pixie-event-seconds-due" ]
-                [ text ("(" ++ (displayInterval model event.seconds_due) ++ ")") ]
+                [ text ("(" ++ displayInterval model event.seconds_due ++ ")") ]
             ]
         ]
 
@@ -166,14 +167,16 @@ displayInterval model seconds =
         milliseconds =
             seconds * 1000
     in
-        if 0 > (seconds + 60) then
-            -- Cron runs max every 60 seconds.
-            model.strings.passed
-        else if 0 > (toFloat seconds - model.timer_period) then
-            -- If due now or in next refresh period, show "now".
-            model.strings.now
-        else
-            divideInterval [] milliseconds (intervals model) |> reverse |> String.join " "
+    if 0 > (seconds + 60) then
+        -- Cron runs max every 60 seconds.
+        model.strings.passed
+
+    else if 0 > (toFloat seconds - model.timer_period) then
+        -- If due now or in next refresh period, show "now".
+        model.strings.now
+
+    else
+        divideInterval [] milliseconds (intervals model) |> reverse |> String.join " "
 
 
 divideInterval : List String -> Int -> List Divider -> List String
@@ -194,10 +197,11 @@ divideInterval_ parts milliseconds divider dividers =
                 count =
                     milliseconds // divider_.val
             in
-                if 0 < count then
-                    divideInterval ((toString count ++ divider_.name) :: parts) (milliseconds % divider_.val) dividers
-                else
-                    divideInterval parts milliseconds dividers
+            if 0 < count then
+                divideInterval ((toString count ++ divider_.name) :: parts) (modBy divider_.val milliseconds) dividers
+
+            else
+                divideInterval parts milliseconds dividers
 
         Nothing ->
             parts
@@ -222,9 +226,9 @@ update msg model =
         RunNow event ->
             let
                 dueEvent =
-                    { event | timestamp = (event.timestamp - event.seconds_due), seconds_due = 0 }
+                    { event | timestamp = event.timestamp - event.seconds_due, seconds_due = 0 }
             in
-                ( { model | schedules = List.map (updateScheduledEvent event dueEvent) model.schedules }, postEvent model.nonce dueEvent )
+            ( { model | schedules = List.map (updateScheduledEvent event dueEvent) model.schedules }, postEvent model.nonce dueEvent )
 
         UpdateEvent (Ok schedules) ->
             ( model, Cmd.none )
@@ -239,7 +243,7 @@ getSchedules nonce =
         encodedUrl =
             url "/wp-admin/admin-ajax.php" [ ( "action", "cron_pixie_schedules" ), ( "nonce", nonce ) ]
     in
-        Http.send Fetch (Http.get encodedUrl schedulesDecoder)
+    Http.send Fetch (Http.get encodedUrl schedulesDecoder)
 
 
 schedulesDecoder : Decoder (List Schedule)
@@ -271,12 +275,12 @@ decodeSchedules json =
         result =
             decodeValue schedulesDecoder json
     in
-        case result of
-            Ok schedules ->
-                schedules
+    case result of
+        Ok schedules ->
+            schedules
 
-            Err error ->
-                []
+        Err error ->
+            []
 
 
 decodeTimerPeriod : String -> Float
@@ -285,12 +289,12 @@ decodeTimerPeriod string =
         result =
             String.toFloat string
     in
-        case result of
-            Ok float ->
-                float
+    case result of
+        Ok float ->
+            float
 
-            Err error ->
-                5.0
+        Err error ->
+            5.0
 
 
 updateScheduledEvent : Event -> Event -> Schedule -> Schedule
@@ -307,6 +311,7 @@ updateMatchedEvent : Event -> Event -> Event -> Event
 updateMatchedEvent match newEvent event =
     if match == event then
         newEvent
+
     else
         event
 
@@ -330,10 +335,11 @@ postEvent nonce event =
                 [ stringPart "action" "cron_pixie_events"
                 , stringPart "nonce" nonce
                 , stringPart "model" (Json.encode 0 eventValue)
-                  -- , stringData "model" (Json.encode 0 eventValue)
+
+                -- , stringData "model" (Json.encode 0 eventValue)
                 ]
     in
-        Http.send UpdateEvent (Http.post url body string)
+    Http.send UpdateEvent (Http.post url body string)
 
 
 url : String -> List ( String, String ) -> String
