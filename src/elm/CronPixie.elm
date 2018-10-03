@@ -1,18 +1,34 @@
-module CronPixie exposing (..)
+module CronPixie exposing (Divider, Event, Flags, Model, Msg(..), Schedule, Strings, decodeSchedules, decodeTimerPeriod, displayInterval, divideInterval, divideInterval_, due, eventArgsDecoder, eventDecoder, eventView, eventsView, getSchedules, init, intervals, main, postEvent, scheduleDecoder, scheduleView, schedulesDecoder, subscriptions, update, updateMatchedEvent, updateScheduledEvent, view)
 
-import Html exposing (Html, div, text, h3, ul, li, span)
+import Browser
+import DateFormat
+import Html exposing (Html, div, h3, li, span, text, ul)
 import Html.Attributes exposing (class, title)
 import Html.Events exposing (..)
-import Date
-import Date.Format
-import Time exposing (Time, second)
-import String
-import List exposing (head, tail, reverse)
-import Maybe exposing (withDefault)
-import Task
-import Http exposing (stringPart, multipartBody, encodeUri)
+import Http
 import Json.Decode exposing (..)
 import Json.Encode as Json
+import List exposing (head, reverse, tail)
+import Maybe exposing (withDefault)
+import String
+import Task
+import Time
+import Url.Builder as Url
+
+
+
+-- MAIN
+
+
+main : Program Flags Model Msg
+main =
+    Browser.element
+        { init = init
+        , update = update
+        , subscriptions = subscriptions
+        , view = view
+        }
+
 
 
 -- MODEL
@@ -82,10 +98,145 @@ init flags =
 
 
 type Msg
-    = Tick Time
+    = Tick Time.Posix
     | Fetch (Result Http.Error (List Schedule))
     | RunNow Event
     | UpdateEvent (Result Http.Error String)
+
+
+
+-- UPDATE
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        Tick newTime ->
+            ( model, getSchedules model.nonce )
+
+        Fetch (Ok schedules) ->
+            ( { model | schedules = schedules }, Cmd.none )
+
+        Fetch (Err _) ->
+            ( model, Cmd.none )
+
+        RunNow event ->
+            let
+                dueEvent =
+                    { event | timestamp = event.timestamp - event.seconds_due, seconds_due = 0 }
+            in
+            ( { model | schedules = List.map (updateScheduledEvent event dueEvent) model.schedules }, postEvent model.nonce dueEvent )
+
+        UpdateEvent (Ok schedules) ->
+            ( model, Cmd.none )
+
+        UpdateEvent (Err _) ->
+            ( model, Cmd.none )
+
+
+getSchedules : String -> Cmd Msg
+getSchedules nonce =
+    let
+        encodedUrl =
+            Url.absolute [ "wp-admin", "admin-ajax.php" ] [ Url.string "action" "cron_pixie_schedules", Url.string "nonce" nonce ]
+    in
+    Http.send Fetch (Http.get encodedUrl schedulesDecoder)
+
+
+schedulesDecoder : Decoder (List Schedule)
+schedulesDecoder =
+    list scheduleDecoder
+
+
+scheduleDecoder : Decoder Schedule
+scheduleDecoder =
+    map4 Schedule (field "name" string) (field "display" string) (maybe (field "interval" int)) (maybe (field "events" (list eventDecoder)))
+
+
+eventDecoder : Decoder Event
+eventDecoder =
+    map6 Event (oneOf [ field "schedule" string, succeed "false" ]) (maybe (field "interval" int)) (field "hook" string) (field "args" eventArgsDecoder) (field "timestamp" int) (field "seconds_due" int)
+
+
+eventArgsDecoder : Decoder (List ( String, String ))
+eventArgsDecoder =
+    oneOf
+        [ keyValuePairs string
+        , succeed []
+        ]
+
+
+decodeSchedules : Value -> List Schedule
+decodeSchedules json =
+    let
+        result =
+            decodeValue schedulesDecoder json
+    in
+    case result of
+        Ok schedules ->
+            schedules
+
+        Err error ->
+            []
+
+
+decodeTimerPeriod : String -> Float
+decodeTimerPeriod string =
+    Maybe.withDefault 5.0 (String.toFloat string)
+
+
+updateScheduledEvent : Event -> Event -> Schedule -> Schedule
+updateScheduledEvent oldEvent newEvent schedule =
+    case schedule.events of
+        Just events ->
+            { schedule | events = Just <| List.map (updateMatchedEvent oldEvent newEvent) events }
+
+        Nothing ->
+            schedule
+
+
+updateMatchedEvent : Event -> Event -> Event -> Event
+updateMatchedEvent match newEvent event =
+    if match == event then
+        newEvent
+
+    else
+        event
+
+
+postEvent : String -> Event -> Cmd Msg
+postEvent nonce event =
+    let
+        url =
+            Url.absolute [ "wp-admin", "admin-ajax.php" ] []
+
+        eventValue =
+            Json.object
+                [ ( "hook", Json.string event.hook )
+                , ( "args", Json.object (List.map (\( key, val ) -> ( key, Json.string val )) event.args) )
+                , ( "schedule", Json.string event.schedule )
+                , ( "timestamp", Json.int event.timestamp )
+                ]
+
+        body =
+            Http.multipartBody
+                [ Http.stringPart "action" "cron_pixie_events"
+                , Http.stringPart "nonce" nonce
+                , Http.stringPart "model" (Json.encode 0 eventValue)
+
+                -- , stringData "model" (Json.encode 0 eventValue)
+                ]
+    in
+    Http.send UpdateEvent (Http.post url body string)
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Time.every (model.timer_period * 1000) Tick
 
 
 
@@ -130,12 +281,12 @@ eventView model event =
         , span [ class "cron-pixie-event-hook" ]
             [ text event.hook ]
         , div [ class "cron-pixie-event-timestamp dashicons-before dashicons-clock" ]
-            [ text " "
+            [ text "\u{00A0}"
             , span [ class "cron-pixie-event-due" ]
-                [ text (model.strings.due ++ ": " ++ (due event.timestamp)) ]
-            , text " "
+                [ text (model.strings.due ++ ": " ++ due event.timestamp) ]
+            , text "\u{00A0}"
             , span [ class "cron-pixie-event-seconds-due" ]
-                [ text ("(" ++ (displayInterval model event.seconds_due) ++ ")") ]
+                [ text ("(" ++ displayInterval model event.seconds_due ++ ")") ]
             ]
         ]
 
@@ -144,9 +295,21 @@ due : Int -> String
 due timestamp =
     timestamp
         * 1000
-        |> toFloat
-        |> Date.fromTime
-        |> Date.Format.format "%Y-%m-%d %H:%M:%S"
+        |> Time.millisToPosix
+        |> DateFormat.format
+            [ DateFormat.yearNumber
+            , DateFormat.text "-"
+            , DateFormat.monthFixed
+            , DateFormat.text "-"
+            , DateFormat.dayOfMonthFixed
+            , DateFormat.text " "
+            , DateFormat.hourMilitaryFixed
+            , DateFormat.text ":"
+            , DateFormat.minuteFixed
+            , DateFormat.text ":"
+            , DateFormat.secondFixed
+            ]
+            Time.utc
 
 
 intervals : Model -> List Divider
@@ -166,14 +329,16 @@ displayInterval model seconds =
         milliseconds =
             seconds * 1000
     in
-        if 0 > (seconds + 60) then
-            -- Cron runs max every 60 seconds.
-            model.strings.passed
-        else if 0 > (toFloat seconds - model.timer_period) then
-            -- If due now or in next refresh period, show "now".
-            model.strings.now
-        else
-            divideInterval [] milliseconds (intervals model) |> reverse |> String.join " "
+    if 0 > (seconds + 60) then
+        -- Cron runs max every 60 seconds.
+        model.strings.passed
+
+    else if 0 > (toFloat seconds - model.timer_period) then
+        -- If due now or in next refresh period, show "now".
+        model.strings.now
+
+    else
+        divideInterval [] milliseconds (intervals model) |> reverse |> String.join " "
 
 
 divideInterval : List String -> Int -> List Divider -> List String
@@ -194,186 +359,11 @@ divideInterval_ parts milliseconds divider dividers =
                 count =
                     milliseconds // divider_.val
             in
-                if 0 < count then
-                    divideInterval ((toString count ++ divider_.name) :: parts) (milliseconds % divider_.val) dividers
-                else
-                    divideInterval parts milliseconds dividers
+            if 0 < count then
+                divideInterval ((String.fromInt count ++ divider_.name) :: parts) (modBy divider_.val milliseconds) dividers
+
+            else
+                divideInterval parts milliseconds dividers
 
         Nothing ->
             parts
-
-
-
--- UPDATE
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        Tick newTime ->
-            ( model, getSchedules model.nonce )
-
-        Fetch (Ok schedules) ->
-            ( { model | schedules = schedules }, Cmd.none )
-
-        Fetch (Err _) ->
-            ( model, Cmd.none )
-
-        RunNow event ->
-            let
-                dueEvent =
-                    { event | timestamp = (event.timestamp - event.seconds_due), seconds_due = 0 }
-            in
-                ( { model | schedules = List.map (updateScheduledEvent event dueEvent) model.schedules }, postEvent model.nonce dueEvent )
-
-        UpdateEvent (Ok schedules) ->
-            ( model, Cmd.none )
-
-        UpdateEvent (Err _) ->
-            ( model, Cmd.none )
-
-
-getSchedules : String -> Cmd Msg
-getSchedules nonce =
-    let
-        encodedUrl =
-            url "/wp-admin/admin-ajax.php" [ ( "action", "cron_pixie_schedules" ), ( "nonce", nonce ) ]
-    in
-        Http.send Fetch (Http.get encodedUrl schedulesDecoder)
-
-
-schedulesDecoder : Decoder (List Schedule)
-schedulesDecoder =
-    list scheduleDecoder
-
-
-scheduleDecoder : Decoder Schedule
-scheduleDecoder =
-    map4 Schedule (field "name" string) (field "display" string) (maybe (field "interval" int)) (maybe (field "events" (list eventDecoder)))
-
-
-eventDecoder : Decoder Event
-eventDecoder =
-    map6 Event (oneOf [ field "schedule" string, succeed "false" ]) (maybe (field "interval" int)) (field "hook" string) (field "args" eventArgsDecoder) (field "timestamp" int) (field "seconds_due" int)
-
-
-eventArgsDecoder : Decoder (List ( String, String ))
-eventArgsDecoder =
-    oneOf
-        [ keyValuePairs string
-        , succeed []
-        ]
-
-
-decodeSchedules : Value -> List Schedule
-decodeSchedules json =
-    let
-        result =
-            decodeValue schedulesDecoder json
-    in
-        case result of
-            Ok schedules ->
-                schedules
-
-            Err error ->
-                []
-
-
-decodeTimerPeriod : String -> Float
-decodeTimerPeriod string =
-    let
-        result =
-            String.toFloat string
-    in
-        case result of
-            Ok float ->
-                float
-
-            Err error ->
-                5.0
-
-
-updateScheduledEvent : Event -> Event -> Schedule -> Schedule
-updateScheduledEvent oldEvent newEvent schedule =
-    case schedule.events of
-        Just events ->
-            { schedule | events = Just <| List.map (updateMatchedEvent oldEvent newEvent) events }
-
-        Nothing ->
-            schedule
-
-
-updateMatchedEvent : Event -> Event -> Event -> Event
-updateMatchedEvent match newEvent event =
-    if match == event then
-        newEvent
-    else
-        event
-
-
-postEvent : String -> Event -> Cmd Msg
-postEvent nonce event =
-    let
-        url =
-            "/wp-admin/admin-ajax.php"
-
-        eventValue =
-            Json.object
-                [ ( "hook", Json.string event.hook )
-                , ( "args", Json.object (List.map (\( key, val ) -> ( key, Json.string val )) event.args) )
-                , ( "schedule", Json.string event.schedule )
-                , ( "timestamp", Json.int event.timestamp )
-                ]
-
-        body =
-            multipartBody
-                [ stringPart "action" "cron_pixie_events"
-                , stringPart "nonce" nonce
-                , stringPart "model" (Json.encode 0 eventValue)
-                  -- , stringData "model" (Json.encode 0 eventValue)
-                ]
-    in
-        Http.send UpdateEvent (Http.post url body string)
-
-
-url : String -> List ( String, String ) -> String
-url baseUrl args =
-    case args of
-        [] ->
-            baseUrl
-
-        _ ->
-            baseUrl ++ "?" ++ String.join "&" (List.map queryPair args)
-
-
-queryPair : ( String, String ) -> String
-queryPair ( key, value ) =
-    queryEscape key ++ "=" ++ queryEscape value
-
-
-queryEscape : String -> String
-queryEscape string =
-    String.join "+" (String.split "%20" (encodeUri string))
-
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Time.every (model.timer_period * second) Tick
-
-
-
--- MAIN
-
-
-main : Program Flags Model Msg
-main =
-    Html.programWithFlags
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
-        }
