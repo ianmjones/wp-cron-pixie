@@ -8,8 +8,10 @@
     "build-js": "browserify -e src/js/main.js -o src/js/build.js",
     "watch-js": "watchify -v -e src/js/main.js -o src/js/build.js",
     "build-elm": "elm-format src/elm/ --yes && elm make src/elm/CronPixie.elm --output=src/js/CronPixie.js",
+    "build-elm-prod": "elm-format src/elm/ --yes && elm make src/elm/CronPixie.elm --output=src/js/CronPixie.js --optimize",
     "watch-elm": "chokidar '**/*.elm' -c 'npm run build-elm'",
     "build": "npm run build-elm && npm run build-js",
+    "build-prod": "npm run build-elm-prod && npm run build-js",
     "watch": "npm run build && npm run watch-js & npm run watch-elm"
   },
   "repository": {
