@@ -2,8 +2,8 @@ module CronPixie exposing (Divider, Event, Flags, Model, Msg(..), Schedule, Stri
 
 import Browser
 import DateFormat
-import Html exposing (Html, div, h3, li, span, text, ul)
-import Html.Attributes exposing (class, title)
+import Html exposing (Html, div, h3, input, label, li, p, span, text, ul)
+import Html.Attributes as Attr exposing (class, for, title, type_, value)
 import Html.Events exposing (..)
 import Http
 import Json.Decode exposing (..)
@@ -39,6 +39,7 @@ type alias Model =
     , nonce : String
     , timer_period : Float
     , schedules : List Schedule
+    , example_events : Bool
     }
 
 
@@ -85,12 +86,13 @@ type alias Flags =
     , nonce : String
     , timer_period : String
     , schedules : Value
+    , example_events : String
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( Model flags.strings flags.nonce (decodeTimerPeriod flags.timer_period) (decodeSchedules flags.schedules), Cmd.none )
+    ( Model flags.strings flags.nonce (decodeTimerPeriod flags.timer_period) (decodeSchedules flags.schedules) (decodeExampleEvents flags.example_events), Cmd.none )
 
 
 
@@ -102,6 +104,8 @@ type Msg
     | Fetch (Result Http.Error (List Schedule))
     | RunNow Event
     | UpdateEvent (Result Http.Error String)
+    | ExampleEvents Bool
+    | UpdateExampleEvents (Result Http.Error String)
 
 
 
@@ -131,6 +135,15 @@ update msg model =
             ( model, Cmd.none )
 
         UpdateEvent (Err _) ->
+            ( model, Cmd.none )
+
+        ExampleEvents exampleEvents ->
+            ( { model | example_events = exampleEvents }, postExampleEvents model.nonce exampleEvents )
+
+        UpdateExampleEvents (Ok exampleEvents) ->
+            ( model, Cmd.none )
+
+        UpdateExampleEvents (Err _) ->
             ( model, Cmd.none )
 
 
@@ -185,6 +198,20 @@ decodeTimerPeriod string =
     Maybe.withDefault 5.0 (String.toFloat string)
 
 
+decodeExampleEvents : String -> Bool
+decodeExampleEvents string =
+    string == "1"
+
+
+encodeExampleEvents : Bool -> String
+encodeExampleEvents bool =
+    if bool then
+        "1"
+
+    else
+        ""
+
+
 updateScheduledEvent : Event -> Event -> Schedule -> Schedule
 updateScheduledEvent oldEvent newEvent schedule =
     case schedule.events of
@@ -223,11 +250,25 @@ postEvent nonce event =
                 [ Http.stringPart "action" "cron_pixie_events"
                 , Http.stringPart "nonce" nonce
                 , Http.stringPart "model" (Json.encode 0 eventValue)
-
-                -- , stringData "model" (Json.encode 0 eventValue)
                 ]
     in
     Http.send UpdateEvent (Http.post url body string)
+
+
+postExampleEvents : String -> Bool -> Cmd Msg
+postExampleEvents nonce value =
+    let
+        url =
+            Url.absolute [ "wp-admin", "admin-ajax.php" ] []
+
+        body =
+            Http.multipartBody
+                [ Http.stringPart "action" "cron_pixie_example_events"
+                , Http.stringPart "nonce" nonce
+                , Http.stringPart "example_events" (encodeExampleEvents value)
+                ]
+    in
+    Http.send UpdateExampleEvents (Http.post url body string)
 
 
 
@@ -246,10 +287,18 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ h3 []
-            [ text "Schedules" ]
-        , ul [ class "cron-pixie-schedules" ]
-            (List.map (scheduleView model) model.schedules)
+        [ div [ class "cron-pixie-content" ]
+            [ h3 []
+                [ text "Schedules" ]
+            , ul [ class "cron-pixie-schedules" ]
+                (List.map (scheduleView model) model.schedules)
+            ]
+        , div [ class "cron-pixie-settings" ]
+            [ label [ Attr.for "cron-pixie-example-events" ]
+                [ input [ type_ "checkbox", Attr.id "cron-pixie-example-events", Attr.checked model.example_events, onCheck ExampleEvents ] []
+                , text "Example Events"
+                ]
+            ]
         ]
 
 
@@ -270,7 +319,11 @@ eventsView model events =
                 (List.map (eventView model) events_)
 
         Nothing ->
-            text ""
+            ul [ class "cron-pixie-events" ]
+                [ li [ class "cron-pixie-event-empty" ]
+                    [ text "(none)"
+                    ]
+                ]
 
 
 eventView : Model -> Event -> Html Msg

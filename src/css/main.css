@@ -1,3 +1,11 @@
+#wp-cron-pixie .inside {
+	padding: 0;
+}
+
+.cron-pixie-content {
+	padding: 0 12px 12px 12px;
+}
+
 .cron-pixie-schedule-display {
 	font-weight: bold;
 }
@@ -19,4 +27,9 @@
 
 .cron-pixie-event-empty {
 	color: grey;
+}
+
+.cron-pixie-settings {
+	border-top: 1px solid #eee;
+	padding: 8px 12px 8px 12px;
 }
