@@ -3,6 +3,13 @@
 class Cron_Pixie {
 
 	/**
+	 * The key used for saving settings in the database.
+	 *
+	 * @var string
+	 */
+	const SETTINGS_KEY = 'cron_pixie_settings';
+
+	/**
 	 * Often used plugin info.
 	 *
 	 * @var array
@@ -37,12 +44,18 @@ class Cron_Pixie {
 		// AJAX handlers.
 		add_action( 'wp_ajax_cron_pixie_schedules', array( $this, 'ajax_schedules' ) );
 		add_action( 'wp_ajax_cron_pixie_events', array( $this, 'ajax_events' ) );
+		add_action( 'wp_ajax_cron_pixie_example_events', array( $this, 'ajax_example_events' ) );
 
-		// Add a schedule of our own for testing.
-		add_filter( 'cron_schedules', array( $this, 'filter_cron_schedules' ) );
+		if ( $this->_get_setting( 'example_events' ) ) {
+			// Add a schedule of our own for testing.
+			add_filter( 'cron_schedules', array( $this, 'filter_cron_schedules' ) );
 
-		// Add an event to our test schedule.
-		$this->_create_test_event();
+			// Add events to our test schedule.
+			$this->_create_test_events();
+		} else {
+			// Remove events from our test schedule.
+			$this->_remove_test_events();
+		}
 	}
 
 	/**
@@ -97,7 +110,7 @@ class Cron_Pixie {
 		// Add initial data to CronPixie JS object so it can be rendered without fetch.
 		// Also add translatable strings for JS as well as reference settings.
 		$data = array(
-			'strings'      => array(
+			'strings'        => array(
 				'no_events'    => _x( '(none)', 'no event to show', 'wp-cron-pixie' ),
 				'due'          => _x( 'due', 'label for when cron event date', 'wp-cron-pixie' ),
 				'now'          => _x( 'now', 'cron event is due now', 'wp-cron-pixie' ),
@@ -109,11 +122,12 @@ class Cron_Pixie {
 				'seconds_abrv' => _x( 's', 'displayed in interval', 'wp-cron-pixie' ),
 				'run_now'      => _x( 'Run event now.', 'Title for run now icon', 'wp-cron-pixie' ),
 			),
-			'nonce'        => wp_create_nonce( 'cron-pixie' ),
-			'timer_period' => 5, // How often should display be updated, in seconds.
-			'data'         => array(
+			'nonce'          => wp_create_nonce( 'cron-pixie' ),
+			'timer_period'   => 5, // How often should display be updated, in seconds.
+			'data'           => array(
 				'schedules' => $this->_get_schedules(),
 			),
+			'example_events' => (bool) $this->_get_setting( 'example_events' ),
 		);
 		wp_localize_script( $script_handle, 'CronPixie', $data );
 	}
@@ -189,7 +203,7 @@ class Cron_Pixie {
 	 */
 	public function ajax_events() {
 		// TODO: Sanitize inputs!
-		$event = json_decode( stripcslashes( $_POST['model'] ), true );
+		$event         = json_decode( stripcslashes( $_POST['model'] ), true );
 		$event['args'] = empty( $event['args'] ) ? array() : $event['args'];
 
 		$now       = time();
@@ -224,6 +238,32 @@ class Cron_Pixie {
 	}
 
 	/**
+	 * Update the setting for whether example events should be included in the cron.
+	 */
+	public function ajax_example_events() {
+		// TODO: Sanitize inputs!
+		if ( isset( $_POST['example_events'] ) ) {
+			$value = empty( $_POST['example_events'] ) ? false : true;
+
+			$settings = get_site_option( self::SETTINGS_KEY );
+
+			if ( is_array( $settings ) ) {
+				$settings['example_events'] = $value;
+			} else {
+				$settings = array( 'example_events' => $value );
+			}
+
+			if ( ! update_site_option( self::SETTINGS_KEY, $settings ) ) {
+				$this->_ajax_return( new WP_Error( 'cron-pixie-example-events-update-settings', __( 'Could not update settings.', 'wp-cron-pixie' ) ) );
+			}
+		} else {
+			$this->_ajax_return( new WP_Error( 'cron-pixie-example-events-missing-value', __( 'No value given for whether Example Events should be included in cron.', 'wp-cron-pixie' ) ) );
+		}
+
+		$this->_ajax_return( $value );
+	}
+
+	/**
 	 * Adds an "every_minute" schedule to the Schedules list.
 	 *
 	 * @param array $schedules
@@ -242,7 +282,7 @@ class Cron_Pixie {
 	/**
 	 * Creates test cron events in the cron schedule if they do not already exist.
 	 */
-	private function _create_test_event() {
+	private function _create_test_events() {
 		$args = array( 'wibble' => 'wobble' );
 
 		// Create an event that has already been missed (2 minutes over due).
@@ -259,5 +299,48 @@ class Cron_Pixie {
 		if ( ! wp_next_scheduled( 'cron_pixie_single_event', $args ) ) {
 			wp_schedule_single_event( time() + 300, 'cron_pixie_single_event', $args );
 		}
+	}
+
+	/**
+	 * Remove test cron events from the cron schedule if they already exist.
+	 */
+	private function _remove_test_events() {
+		$args = array( 'wibble' => 'wobble' );
+
+		// Create an event that has already been missed (2 minutes over due).
+		if ( wp_next_scheduled( 'cron_pixie_passed_event', $args ) ) {
+			wp_clear_scheduled_hook( 'cron_pixie_passed_event', $args );
+		}
+
+		// Create an event that is just coming up (initially 30 seconds until due).
+		if ( ! wp_next_scheduled( 'cron_pixie_future_event', $args ) ) {
+			wp_clear_scheduled_hook( 'cron_pixie_future_event', $args );
+		}
+
+		// Create a single event that is in the future (initially 5 minutes until due).
+		if ( ! wp_next_scheduled( 'cron_pixie_single_event', $args ) ) {
+			wp_clear_scheduled_hook( 'cron_pixie_single_event', $args );
+		}
+	}
+
+	/**
+	 * Get a single setting based on its key name.
+	 *
+	 * @param string $key
+	 *
+	 * @return mixed defaults to false if not found
+	 */
+	private function _get_setting( $key ) {
+		$value = false;
+
+		$settings = get_site_option( self::SETTINGS_KEY );
+
+		if ( ! empty( $settings ) ) {
+			if ( isset( $settings[ $key ] ) ) {
+				$value = $settings[ $key ];
+			}
+		}
+
+		return $value;
 	}
 }
