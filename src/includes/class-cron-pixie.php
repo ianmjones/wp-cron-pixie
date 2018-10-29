@@ -45,6 +45,7 @@ class Cron_Pixie {
 		add_action( 'wp_ajax_cron_pixie_schedules', array( $this, 'ajax_schedules' ) );
 		add_action( 'wp_ajax_cron_pixie_events', array( $this, 'ajax_events' ) );
 		add_action( 'wp_ajax_cron_pixie_example_events', array( $this, 'ajax_example_events' ) );
+		add_action( 'wp_ajax_cron_pixie_auto_refresh', array( $this, 'ajax_auto_refresh' ) );
 
 		if ( $this->_get_setting( 'example_events' ) ) {
 			// Add a schedule of our own for testing.
@@ -128,6 +129,7 @@ class Cron_Pixie {
 				'schedules' => $this->_get_schedules(),
 			),
 			'example_events' => (bool) $this->_get_setting( 'example_events' ),
+			'auto_refresh'   => (bool) $this->_get_setting( 'auto_refresh' ),
 		);
 		wp_localize_script( $script_handle, 'CronPixie', $data );
 	}
@@ -258,6 +260,32 @@ class Cron_Pixie {
 			}
 		} else {
 			$this->_ajax_return( new WP_Error( 'cron-pixie-example-events-missing-value', __( 'No value given for whether Example Events should be included in cron.', 'wp-cron-pixie' ) ) );
+		}
+
+		$this->_ajax_return( $value );
+	}
+
+	/**
+	 * Update the setting for whether the display should auto refresh.
+	 */
+	public function ajax_auto_refresh() {
+		// TODO: Sanitize inputs!
+		if ( isset( $_POST['auto_refresh'] ) ) {
+			$value = empty( $_POST['auto_refresh'] ) ? false : true;
+
+			$settings = get_site_option( self::SETTINGS_KEY );
+
+			if ( is_array( $settings ) ) {
+				$settings['auto_refresh'] = $value;
+			} else {
+				$settings = array( 'auto_refresh' => $value );
+			}
+
+			if ( ! update_site_option( self::SETTINGS_KEY, $settings ) ) {
+				$this->_ajax_return( new WP_Error( 'cron-pixie-auto-refresh-update-settings', __( 'Could not update settings.', 'wp-cron-pixie' ) ) );
+			}
+		} else {
+			$this->_ajax_return( new WP_Error( 'cron-pixie-auto-refresh-missing-value', __( 'No value given for whether the display should auto refresh.', 'wp-cron-pixie' ) ) );
 		}
 
 		$this->_ajax_return( $value );

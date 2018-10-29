@@ -33,3 +33,7 @@
 	border-top: 1px solid #eee;
 	padding: 8px 12px 8px 12px;
 }
+
+.cron-pixie-settings label {
+	margin-right: 1em;
+}
