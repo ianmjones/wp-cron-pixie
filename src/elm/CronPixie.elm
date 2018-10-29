@@ -342,11 +342,11 @@ view model =
                 (List.map (scheduleView model) model.schedules)
             ]
         , div [ class "cron-pixie-settings" ]
-            [ label [ Attr.for "cron-pixie-example-events" ]
+            [ label [ Attr.for "cron-pixie-example-events", Attr.title "Include some example events in the cron schedule" ]
                 [ input [ type_ "checkbox", Attr.id "cron-pixie-example-events", Attr.checked model.example_events, onCheck ExampleEvents ] []
                 , text "Example Events"
                 ]
-            , label [ Attr.for "cron-pixie-auto-refresh" ]
+            , label [ Attr.for "cron-pixie-auto-refresh", Attr.title "Refresh the display of cron events every 5 seconds" ]
                 [ input [ type_ "checkbox", Attr.id "cron-pixie-auto-refresh", Attr.checked model.auto_refresh, onCheck AutoRefresh ] []
                 , text "Auto Refresh"
                 ]
