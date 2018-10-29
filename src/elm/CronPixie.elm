@@ -144,13 +144,13 @@ update msg model =
                 dueEvent =
                     { event | timestamp = event.timestamp - event.seconds_due, seconds_due = 0 }
             in
-            ( { model | schedules = List.map (updateScheduledEvent event dueEvent) model.schedules }, postEvent model.nonce dueEvent )
+            ( { model | refreshing = True, schedules = List.map (updateScheduledEvent event dueEvent) model.schedules }, postEvent model.nonce dueEvent )
 
         UpdateEvent (Ok schedules) ->
-            ( model, Cmd.none )
+            ( { model | refreshing = False }, getSchedules model.nonce )
 
         UpdateEvent (Err _) ->
-            ( model, Cmd.none )
+            ( { model | refreshing = False }, getSchedules model.nonce )
 
         ExampleEvents exampleEvents ->
             ( { model | example_events = exampleEvents }, postExampleEvents model.nonce exampleEvents )
