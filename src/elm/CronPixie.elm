@@ -40,6 +40,7 @@ type alias Model =
     , timer_period : Float
     , schedules : List Schedule
     , example_events : Bool
+    , auto_refresh : Bool
     }
 
 
@@ -87,12 +88,13 @@ type alias Flags =
     , timer_period : String
     , schedules : Value
     , example_events : String
+    , auto_refresh : String
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( Model flags.strings flags.nonce (decodeTimerPeriod flags.timer_period) (decodeSchedules flags.schedules) (decodeExampleEvents flags.example_events), Cmd.none )
+    ( Model flags.strings flags.nonce (decodeTimerPeriod flags.timer_period) (decodeSchedules flags.schedules) (decodeExampleEvents flags.example_events) (decodeAutoRefresh flags.auto_refresh), Cmd.none )
 
 
 
@@ -106,6 +108,8 @@ type Msg
     | UpdateEvent (Result Http.Error String)
     | ExampleEvents Bool
     | UpdateExampleEvents (Result Http.Error String)
+    | AutoRefresh Bool
+    | UpdateAutoRefresh (Result Http.Error String)
 
 
 
@@ -116,7 +120,12 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick newTime ->
-            ( model, getSchedules model.nonce )
+            case model.auto_refresh of
+                True ->
+                    ( model, getSchedules model.nonce )
+
+                False ->
+                    ( model, Cmd.none )
 
         Fetch (Ok schedules) ->
             ( { model | schedules = schedules }, Cmd.none )
@@ -144,6 +153,15 @@ update msg model =
             ( model, Cmd.none )
 
         UpdateExampleEvents (Err _) ->
+            ( model, Cmd.none )
+
+        AutoRefresh autoRefresh ->
+            ( { model | auto_refresh = autoRefresh }, postAutoRefresh model.nonce autoRefresh )
+
+        UpdateAutoRefresh (Ok autoRefresh) ->
+            ( model, Cmd.none )
+
+        UpdateAutoRefresh (Err _) ->
             ( model, Cmd.none )
 
 
@@ -212,6 +230,20 @@ encodeExampleEvents bool =
         ""
 
 
+decodeAutoRefresh : String -> Bool
+decodeAutoRefresh string =
+    string == "1"
+
+
+encodeAutoRefresh : Bool -> String
+encodeAutoRefresh bool =
+    if bool then
+        "1"
+
+    else
+        ""
+
+
 updateScheduledEvent : Event -> Event -> Schedule -> Schedule
 updateScheduledEvent oldEvent newEvent schedule =
     case schedule.events of
@@ -271,6 +303,22 @@ postExampleEvents nonce value =
     Http.send UpdateExampleEvents (Http.post url body string)
 
 
+postAutoRefresh : String -> Bool -> Cmd Msg
+postAutoRefresh nonce value =
+    let
+        url =
+            Url.absolute [ "wp-admin", "admin-ajax.php" ] []
+
+        body =
+            Http.multipartBody
+                [ Http.stringPart "action" "cron_pixie_auto_refresh"
+                , Http.stringPart "nonce" nonce
+                , Http.stringPart "auto_refresh" (encodeAutoRefresh value)
+                ]
+    in
+    Http.send UpdateAutoRefresh (Http.post url body string)
+
+
 
 -- SUBSCRIPTIONS
 
@@ -294,9 +342,13 @@ view model =
                 (List.map (scheduleView model) model.schedules)
             ]
         , div [ class "cron-pixie-settings" ]
-            [ label [ Attr.for "cron-pixie-example-events" ]
+            [ label [ Attr.for "cron-pixie-example-events", Attr.title "Include some example events in the cron schedule" ]
                 [ input [ type_ "checkbox", Attr.id "cron-pixie-example-events", Attr.checked model.example_events, onCheck ExampleEvents ] []
                 , text "Example Events"
+                ]
+            , label [ Attr.for "cron-pixie-auto-refresh", Attr.title "Refresh the display of cron events every 5 seconds" ]
+                [ input [ type_ "checkbox", Attr.id "cron-pixie-auto-refresh", Attr.checked model.auto_refresh, onCheck AutoRefresh ] []
+                , text "Auto Refresh"
                 ]
             ]
         ]

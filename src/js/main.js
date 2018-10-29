@@ -8,7 +8,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			nonce: CronPixie.nonce,
 			timer_period: CronPixie.timer_period,
 			schedules: CronPixie.data.schedules,
-			example_events: CronPixie.example_events
+			example_events: CronPixie.example_events,
+			auto_refresh: CronPixie.auto_refresh
 		}
 	} );
 } );
