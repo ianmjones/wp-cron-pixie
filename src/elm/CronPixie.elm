@@ -3,7 +3,7 @@ module CronPixie exposing (Divider, Event, Flags, Model, Msg(..), Schedule, Stri
 import Browser
 import DateFormat
 import Html exposing (Html, div, h3, input, label, li, p, span, text, ul)
-import Html.Attributes as Attr exposing (class, for, title, type_, value)
+import Html.Attributes as Attr exposing (class, classList, title, type_, value)
 import Html.Events exposing (..)
 import Http
 import Json.Decode exposing (..)
@@ -41,6 +41,7 @@ type alias Model =
     , schedules : List Schedule
     , example_events : Bool
     , auto_refresh : Bool
+    , refreshing : Bool
     }
 
 
@@ -55,6 +56,7 @@ type alias Strings =
     , minutes_abrv : String
     , seconds_abrv : String
     , run_now : String
+    , refresh : String
     }
 
 
@@ -94,7 +96,7 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( Model flags.strings flags.nonce (decodeTimerPeriod flags.timer_period) (decodeSchedules flags.schedules) (decodeExampleEvents flags.example_events) (decodeAutoRefresh flags.auto_refresh), Cmd.none )
+    ( Model flags.strings flags.nonce (decodeTimerPeriod flags.timer_period) (decodeSchedules flags.schedules) (decodeExampleEvents flags.example_events) (decodeAutoRefresh flags.auto_refresh) False, Cmd.none )
 
 
 
@@ -103,6 +105,7 @@ init flags =
 
 type Msg
     = Tick Time.Posix
+    | FetchNow
     | Fetch (Result Http.Error (List Schedule))
     | RunNow Event
     | UpdateEvent (Result Http.Error String)
@@ -122,29 +125,32 @@ update msg model =
         Tick newTime ->
             case model.auto_refresh of
                 True ->
-                    ( model, getSchedules model.nonce )
+                    ( { model | refreshing = True }, getSchedules model.nonce )
 
                 False ->
                     ( model, Cmd.none )
 
+        FetchNow ->
+            ( { model | refreshing = True }, getSchedules model.nonce )
+
         Fetch (Ok schedules) ->
-            ( { model | schedules = schedules }, Cmd.none )
+            ( { model | refreshing = False, schedules = schedules }, Cmd.none )
 
         Fetch (Err _) ->
-            ( model, Cmd.none )
+            ( { model | refreshing = False }, Cmd.none )
 
         RunNow event ->
             let
                 dueEvent =
                     { event | timestamp = event.timestamp - event.seconds_due, seconds_due = 0 }
             in
-            ( { model | schedules = List.map (updateScheduledEvent event dueEvent) model.schedules }, postEvent model.nonce dueEvent )
+            ( { model | refreshing = True, schedules = List.map (updateScheduledEvent event dueEvent) model.schedules }, postEvent model.nonce dueEvent )
 
         UpdateEvent (Ok schedules) ->
-            ( model, Cmd.none )
+            ( { model | refreshing = False }, getSchedules model.nonce )
 
         UpdateEvent (Err _) ->
-            ( model, Cmd.none )
+            ( { model | refreshing = False }, getSchedules model.nonce )
 
         ExampleEvents exampleEvents ->
             ( { model | example_events = exampleEvents }, postExampleEvents model.nonce exampleEvents )
@@ -342,14 +348,16 @@ view model =
                 (List.map (scheduleView model) model.schedules)
             ]
         , div [ class "cron-pixie-settings" ]
-            [ label [ Attr.for "cron-pixie-example-events", Attr.title "Include some example events in the cron schedule" ]
+            [ label [ Attr.for "cron-pixie-example-events", title "Include some example events in the cron schedule" ]
                 [ input [ type_ "checkbox", Attr.id "cron-pixie-example-events", Attr.checked model.example_events, onCheck ExampleEvents ] []
                 , text "Example Events"
                 ]
-            , label [ Attr.for "cron-pixie-auto-refresh", Attr.title "Refresh the display of cron events every 5 seconds" ]
+            , label [ Attr.for "cron-pixie-auto-refresh", title "Refresh the display of cron events every 5 seconds" ]
                 [ input [ type_ "checkbox", Attr.id "cron-pixie-auto-refresh", Attr.checked model.auto_refresh, onCheck AutoRefresh ] []
                 , text "Auto Refresh"
                 ]
+            , span [ Attr.id "cron-pixie-refresh-now", class "dashicons dashicons-update", classList [ ( "refreshing", model.refreshing ) ], title model.strings.refresh, onClick FetchNow ]
+                []
             ]
         ]
 

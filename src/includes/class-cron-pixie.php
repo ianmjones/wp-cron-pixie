@@ -122,6 +122,7 @@ class Cron_Pixie {
 				'minutes_abrv' => _x( 'm', 'displayed in interval', 'wp-cron-pixie' ),
 				'seconds_abrv' => _x( 's', 'displayed in interval', 'wp-cron-pixie' ),
 				'run_now'      => _x( 'Run event now.', 'Title for run now icon', 'wp-cron-pixie' ),
+				'refresh'      => _x( 'Refresh Now', 'Title for refresh now icon', 'wp-cron-pixie' ),
 			),
 			'nonce'          => wp_create_nonce( 'cron-pixie' ),
 			'timer_period'   => 5, // How often should display be updated, in seconds.
