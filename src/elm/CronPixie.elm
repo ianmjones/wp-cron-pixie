@@ -55,6 +55,7 @@ type alias Strings =
     , minutes_abrv : String
     , seconds_abrv : String
     , run_now : String
+    , refresh : String
     }
 
 
@@ -103,6 +104,7 @@ init flags =
 
 type Msg
     = Tick Time.Posix
+    | FetchNow
     | Fetch (Result Http.Error (List Schedule))
     | RunNow Event
     | UpdateEvent (Result Http.Error String)
@@ -126,6 +128,9 @@ update msg model =
 
                 False ->
                     ( model, Cmd.none )
+
+        FetchNow ->
+            ( model, getSchedules model.nonce )
 
         Fetch (Ok schedules) ->
             ( { model | schedules = schedules }, Cmd.none )
@@ -350,6 +355,8 @@ view model =
                 [ input [ type_ "checkbox", Attr.id "cron-pixie-auto-refresh", Attr.checked model.auto_refresh, onCheck AutoRefresh ] []
                 , text "Auto Refresh"
                 ]
+            , span [ Attr.id "cron-pixie-refresh-now", class "dashicons dashicons-update", Attr.title model.strings.refresh, onClick FetchNow ]
+                []
             ]
         ]
 

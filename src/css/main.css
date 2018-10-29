@@ -37,3 +37,7 @@
 .cron-pixie-settings label {
 	margin-right: 1em;
 }
+
+.cron-pixie-settings #cron-pixie-refresh-now {
+	float: right;
+}

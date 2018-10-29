@@ -47,6 +47,7 @@ This plugin was built for the [Building Reactive WordPress Plugins](https://deli
 = 1.4 =
 * Added checkbox to control whether example cron events should be added to cron.
 * Added checkbox to control whether the display should auto refresh.
+* Added "Refresh" icon.
 * Elm 0.19 frontend.
 
 = 1.3.1 =
