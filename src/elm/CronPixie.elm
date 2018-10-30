@@ -57,6 +57,11 @@ type alias Strings =
     , seconds_abrv : String
     , run_now : String
     , refresh : String
+    , schedules : String
+    , example_events : String
+    , example_events_tooltip : String
+    , auto_refresh : String
+    , auto_refresh_tooltip : String
     }
 
 
@@ -343,18 +348,18 @@ view model =
     div []
         [ div [ class "cron-pixie-content" ]
             [ h3 []
-                [ text "Schedules" ]
+                [ text model.strings.schedules ]
             , ul [ class "cron-pixie-schedules" ]
                 (List.map (scheduleView model) model.schedules)
             ]
         , div [ class "cron-pixie-settings" ]
-            [ label [ Attr.for "cron-pixie-example-events", title "Include some example events in the cron schedule" ]
+            [ label [ Attr.for "cron-pixie-example-events", title model.strings.example_events_tooltip ]
                 [ input [ type_ "checkbox", Attr.id "cron-pixie-example-events", Attr.checked model.example_events, onCheck ExampleEvents ] []
-                , text "Example Events"
+                , text model.strings.example_events
                 ]
-            , label [ Attr.for "cron-pixie-auto-refresh", title "Refresh the display of cron events every 5 seconds" ]
+            , label [ Attr.for "cron-pixie-auto-refresh", title model.strings.auto_refresh_tooltip ]
                 [ input [ type_ "checkbox", Attr.id "cron-pixie-auto-refresh", Attr.checked model.auto_refresh, onCheck AutoRefresh ] []
-                , text "Auto Refresh"
+                , text model.strings.auto_refresh
                 ]
             , span [ Attr.id "cron-pixie-refresh-now", class "dashicons dashicons-update", classList [ ( "refreshing", model.refreshing ) ], title model.strings.refresh, onClick FetchNow ]
                 []
@@ -381,7 +386,7 @@ eventsView model events =
         Nothing ->
             ul [ class "cron-pixie-events" ]
                 [ li [ class "cron-pixie-event-empty" ]
-                    [ text "(none)"
+                    [ text model.strings.no_events
                     ]
                 ]
 
