@@ -8,5 +8,7 @@ This plugin was built for the [Building Reactive WordPress Plugins](https://deli
 1. [Building Reactive WordPress Plugins – Part 2 – Vue.js](https://deliciousbrains.com/building-reactive-wordpress-plugins-part-2-vue-js/)
 1. [Building Reactive WordPress Plugins – Part 3 – Elm](https://deliciousbrains.com/building-reactive-wordpress-plugins-part-3-elm/)
 
+The current version is using Elm on the frontend.
+
 ## Bugs & Feature Requests
 Please report any issues via our [GitHub Issues list](https://github.com/ianmjones/wp-cron-pixie/issues).
