@@ -3,7 +3,7 @@ Contributors: ianmjones
 Donate link: https://www.ianmjones.com/
 Tags: cron, wp-cron, dashboard, admin, widget
 Requires at least: 3.9
-Tested up to: 5.1
+Tested up to: 5.2
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
