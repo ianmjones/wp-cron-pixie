@@ -102,7 +102,15 @@ class Cron_Pixie {
 
 		wp_enqueue_script(
 			$script_handle,
-			plugin_dir_url( $this->plugin_meta['file'] ) . 'js/build.js',
+			plugin_dir_url( $this->plugin_meta['file'] ) . 'js/main.js',
+			array(),
+			$this->plugin_meta['version'],
+			true // Load JS in footer so that templates in DOM can be referenced.
+		);
+
+		wp_enqueue_script(
+			$script_handle . '-build',
+			plugin_dir_url( $this->plugin_meta['file'] ) . 'js/CronPixie.js',
 			array(),
 			$this->plugin_meta['version'],
 			true // Load JS in footer so that templates in DOM can be referenced.

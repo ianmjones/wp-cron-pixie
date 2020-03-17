@@ -1,7 +1,6 @@
-var CronPixieApp = require( './CronPixie' );
 document.addEventListener( 'DOMContentLoaded', () => {
 	var $mountPoint = document.getElementById( 'cron-pixie-main' );
-	var app = CronPixieApp.Elm.CronPixie.init( {
+	var app = Elm.CronPixie.init( {
 		node: $mountPoint,
 		flags: {
 			strings: CronPixie.strings,
