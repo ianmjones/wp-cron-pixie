@@ -36,6 +36,7 @@ main =
 
 type alias Model =
     { strings : Strings
+    , admin_url : String
     , nonce : String
     , timer_period : Float
     , schedules : List Schedule
@@ -91,6 +92,7 @@ type alias Divider =
 
 type alias Flags =
     { strings : Strings
+    , admin_url : String
     , nonce : String
     , timer_period : String
     , schedules : Value
@@ -101,7 +103,7 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( Model flags.strings flags.nonce (decodeTimerPeriod flags.timer_period) (decodeSchedules flags.schedules) (decodeExampleEvents flags.example_events) (decodeAutoRefresh flags.auto_refresh) False, Cmd.none )
+    ( Model flags.strings flags.admin_url flags.nonce (decodeTimerPeriod flags.timer_period) (decodeSchedules flags.schedules) (decodeExampleEvents flags.example_events) (decodeAutoRefresh flags.auto_refresh) False, Cmd.none )
 
 
 
@@ -130,13 +132,13 @@ update msg model =
         Tick newTime ->
             case model.auto_refresh of
                 True ->
-                    ( { model | refreshing = True }, getSchedules model.nonce )
+                    ( { model | refreshing = True }, getSchedules model.admin_url model.nonce )
 
                 False ->
                     ( model, Cmd.none )
 
         FetchNow ->
-            ( { model | refreshing = True }, getSchedules model.nonce )
+            ( { model | refreshing = True }, getSchedules model.admin_url model.nonce )
 
         Fetch (Ok schedules) ->
             ( { model | refreshing = False, schedules = schedules }, Cmd.none )
@@ -149,16 +151,16 @@ update msg model =
                 dueEvent =
                     { event | timestamp = event.timestamp - event.seconds_due, seconds_due = 0 }
             in
-            ( { model | refreshing = True, schedules = List.map (updateScheduledEvent event dueEvent) model.schedules }, postEvent model.nonce dueEvent )
+            ( { model | refreshing = True, schedules = List.map (updateScheduledEvent event dueEvent) model.schedules }, postEvent model.admin_url model.nonce dueEvent )
 
         UpdateEvent (Ok schedules) ->
-            ( { model | refreshing = False }, getSchedules model.nonce )
+            ( { model | refreshing = False }, getSchedules model.admin_url model.nonce )
 
         UpdateEvent (Err _) ->
-            ( { model | refreshing = False }, getSchedules model.nonce )
+            ( { model | refreshing = False }, getSchedules model.admin_url model.nonce )
 
         ExampleEvents exampleEvents ->
-            ( { model | example_events = exampleEvents }, postExampleEvents model.nonce exampleEvents )
+            ( { model | example_events = exampleEvents }, postExampleEvents model.admin_url model.nonce exampleEvents )
 
         UpdateExampleEvents (Ok exampleEvents) ->
             ( model, Cmd.none )
@@ -167,7 +169,7 @@ update msg model =
             ( model, Cmd.none )
 
         AutoRefresh autoRefresh ->
-            ( { model | auto_refresh = autoRefresh }, postAutoRefresh model.nonce autoRefresh )
+            ( { model | auto_refresh = autoRefresh }, postAutoRefresh model.admin_url model.nonce autoRefresh )
 
         UpdateAutoRefresh (Ok autoRefresh) ->
             ( model, Cmd.none )
@@ -176,11 +178,11 @@ update msg model =
             ( model, Cmd.none )
 
 
-getSchedules : String -> Cmd Msg
-getSchedules nonce =
+getSchedules : String -> String -> Cmd Msg
+getSchedules adminUrl nonce =
     let
         encodedUrl =
-            Url.absolute [ "wp-admin", "admin-ajax.php" ] [ Url.string "action" "cron_pixie_schedules", Url.string "nonce" nonce ]
+            Url.crossOrigin adminUrl [ "admin-ajax.php" ] [ Url.string "action" "cron_pixie_schedules", Url.string "nonce" nonce ]
     in
     Http.send Fetch (Http.get encodedUrl schedulesDecoder)
 
@@ -274,11 +276,11 @@ updateMatchedEvent match newEvent event =
         event
 
 
-postEvent : String -> Event -> Cmd Msg
-postEvent nonce event =
+postEvent : String -> String -> Event -> Cmd Msg
+postEvent adminUrl nonce event =
     let
         url =
-            Url.absolute [ "wp-admin", "admin-ajax.php" ] []
+            Url.crossOrigin adminUrl [ "admin-ajax.php" ] []
 
         eventValue =
             Json.object
@@ -298,11 +300,11 @@ postEvent nonce event =
     Http.send UpdateEvent (Http.post url body string)
 
 
-postExampleEvents : String -> Bool -> Cmd Msg
-postExampleEvents nonce value =
+postExampleEvents : String -> String -> Bool -> Cmd Msg
+postExampleEvents adminUrl nonce value =
     let
         url =
-            Url.absolute [ "wp-admin", "admin-ajax.php" ] []
+            Url.crossOrigin adminUrl [ "admin-ajax.php" ] []
 
         body =
             Http.multipartBody
@@ -314,11 +316,11 @@ postExampleEvents nonce value =
     Http.send UpdateExampleEvents (Http.post url body string)
 
 
-postAutoRefresh : String -> Bool -> Cmd Msg
-postAutoRefresh nonce value =
+postAutoRefresh : String -> String -> Bool -> Cmd Msg
+postAutoRefresh adminUrl nonce value =
     let
         url =
-            Url.absolute [ "wp-admin", "admin-ajax.php" ] []
+            Url.crossOrigin adminUrl [ "admin-ajax.php" ] []
 
         body =
             Http.multipartBody
