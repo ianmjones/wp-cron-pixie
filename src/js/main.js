@@ -4,6 +4,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		node: $mountPoint,
 		flags: {
 			strings: CronPixie.strings,
+			admin_url: CronPixie.admin_url,
 			nonce: CronPixie.nonce,
 			timer_period: CronPixie.timer_period,
 			schedules: CronPixie.data.schedules,

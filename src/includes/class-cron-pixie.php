@@ -137,6 +137,7 @@ class Cron_Pixie {
 				'auto_refresh'           => _x( 'Auto Refresh', 'Label for Auto Refresh checkbox', 'wp-cron-pixie' ),
 				'auto_refresh_tooltip'   => _x( 'Refresh the display of cron events every 5 seconds', 'Tooltip for Auto Refresh checkbox', 'wp-cron-pixie' ),
 			),
+			'admin_url'      => untrailingslashit( admin_url() ),
 			'nonce'          => wp_create_nonce( 'cron-pixie' ),
 			'timer_period'   => 5, // How often should display be updated, in seconds.
 			'data'           => array(
