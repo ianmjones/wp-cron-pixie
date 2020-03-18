@@ -44,6 +44,11 @@ This plugin was built for the [Building Reactive WordPress Plugins](https://deli
 
 == Changelog ==
 
+= 1.4.1 =
+* Fixed wrong data refreshing into non-primary subsite of directory multisite
+* Minor updates to framework and build tools.
+* Tested with WP 5.4
+
 = 1.4 =
 * Added checkbox to control whether example cron events should be added to cron.
 * Added checkbox to control whether the display should auto refresh.
