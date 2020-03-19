@@ -3,7 +3,7 @@ OBJ = src/js/CronPixie.js
 SRC = src/elm/CronPixie.elm
 SLUG = wp-cron-pixie
 ZIP = builds/$(SLUG)-$(VERSION).zip
-PLUGIN_BUILD = "https://raw.githubusercontent.com/deliciousbrains/wp-plugin-build/358db3128e650da3fdc12e73a38f63746626a1db/plugin-build"
+PLUGIN_BUILD = "https://raw.githubusercontent.com/deliciousbrains/wp-plugin-build/94b5c3ff47cbded11386f8aeaca749a6248010be/plugin-build"
 
 ELM ?= elm
 ELMFMT ?= elm-format
@@ -18,9 +18,8 @@ zip: $(ZIP)
 
 $(ZIP): builds/plugin-build $(OBJ)
 	cd ./build-cfg/$(SLUG) && ../../builds/plugin-build $(VERSION)
-	touch builds/plugin-build
 
-builds/plugin-build: builds
+builds/plugin-build: | builds
 	curl -sSL $(PLUGIN_BUILD) -o "builds/plugin-build"
 	chmod +x "builds/plugin-build"
 
@@ -33,7 +32,6 @@ prod:
 
 publish: builds/plugin-build prod
 	cd ./build-cfg/$(SLUG) && ../../builds/plugin-build $(VERSION) -p
-	touch builds/plugin-build
 
 clean:
 	# Deliverables and artefacts.
