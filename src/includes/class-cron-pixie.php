@@ -30,6 +30,11 @@ class Cron_Pixie {
 
 		$this->plugin_meta = $plugin_meta;
 
+		// Using the plugin in the network admin dashboard makes no sense.
+		if ( is_network_admin() ) {
+			return;
+		}
+
 		// Usage of the plugin is restricted to Administrators.
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
