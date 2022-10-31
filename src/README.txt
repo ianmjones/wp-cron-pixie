@@ -1,10 +1,11 @@
 === Plugin Name ===
 Contributors: ianmjones
-Donate link: https://www.ianmjones.com/
+Donate link: https://ianmjones.com/
 Tags: cron, wp-cron, dashboard, admin, widget
-Requires at least: 4.9
-Tested up to: 6.0
+Requires at least: 5.3
+Tested up to: 6.1
 Stable tag: trunk
+Requires PHP: 5.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,8 +45,12 @@ This plugin was built for the [Building Reactive WordPress Plugins](https://deli
 
 == Changelog ==
 
+= 1.4.2 =
+* Fixed dashboard widget trying to run at network level in a multisite.
+* Tested with WP 6.1
+
 = 1.4.1 =
-* Fixed wrong data refreshing into non-primary subsite of directory multisite
+* Fixed wrong data refreshing into non-primary subsite of directory multisite.
 * Minor updates to framework and build tools.
 * Tested with WP 5.4
 
