@@ -1,4 +1,4 @@
-VERSION = 1.4.2
+VERSION = 1.4.3
 OBJ = src/js/CronPixie.js
 SRC = src/elm/CronPixie.elm
 SLUG = wp-cron-pixie
