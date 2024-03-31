@@ -8,7 +8,7 @@
  * Plugin Name:       WP Cron Pixie
  * Plugin URI:        https://github.com/ianmjones/wp-cron-pixie
  * Description:       A little dashboard widget to manage the WordPress cron.
- * Version:           1.4.3
+ * Version:           1.4.4
  * Author:            Ian M. Jones
  * Author URI:        https://ianmjones.com/
  * License:           GPL-2.0+
@@ -33,7 +33,7 @@ function cron_pixie_meta() {
 		'slug'    => 'wp-cron-pixie',
 		'name'    => 'WP Cron Pixie',
 		'file'    => __FILE__,
-		'version' => '1.4.3',
+		'version' => '1.4.4',
 	);
 }
 

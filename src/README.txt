@@ -3,7 +3,7 @@ Contributors: ianmjones
 Donate link: https://ianmjones.com/
 Tags: cron, wp-cron, dashboard, admin, widget
 Requires at least: 5.3
-Tested up to: 6.4
+Tested up to: 6.5
 Stable tag: trunk
 Requires PHP: 5.6
 License: GPLv2 or later
@@ -44,6 +44,10 @@ This plugin was built for the [Building Reactive WordPress Plugins](https://deli
 1. WP Cron Pixie widget.
 
 == Changelog ==
+
+= 1.4.4 =
+* Updated dependencies.
+* Tested with WP 6.5
 
 = 1.4.3 =
 * Tested with WP 6.4
