@@ -3,6 +3,7 @@ node_modules
 /src/js/build.js
 elm-stuff
 /src/js/CronPixie.js
+/src/js/ui.js
 builds
 vendor
 .coveralls.yml

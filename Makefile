@@ -1,19 +1,17 @@
-VERSION = 1.4.4
-OBJ = src/js/CronPixie.js
-SRC = src/elm/CronPixie.elm
+VERSION = 1.5.0-dev
+OBJ = src/js/ui.js
+SRC = src/ui/src/ui.gleam
 SLUG = wp-cron-pixie
 ZIP = builds/$(SLUG)-$(VERSION).zip
 PLUGIN_BUILD = "https://raw.githubusercontent.com/deliciousbrains/wp-plugin-build/94b5c3ff47cbded11386f8aeaca749a6248010be/plugin-build"
 
-ELM ?= elm
-ELMFMT ?= elm-format
+GLEAM ?= gleam
 
 $(OBJ): $(SRC)
-	$(ELMFMT) src/elm/ --yes
-	$(ELM) make $(SRC) --output=$(OBJ)
+	cd src/ui; $(GLEAM) run -m esgleam/bundle
+	mv src/ui/dist/ui.js $@
 
-.PHONY: zip prod publish clean
-
+.PHONY: zip
 zip: $(ZIP)
 
 $(ZIP): builds/plugin-build $(OBJ)
@@ -26,15 +24,13 @@ builds/plugin-build: | builds
 builds:
 	mkdir "builds"
 
-prod:
-	$(ELMFMT) src/elm/ --yes
-	$(ELM) make $(SRC) --output=$(OBJ) --optimize
-
+.PHONY: publish
 publish: builds/plugin-build prod
 	cd ./build-cfg/$(SLUG) && ../../builds/plugin-build $(VERSION) -p
 
+.PHONY: clean
 clean:
 	# Deliverables and artefacts.
-	rm -rf ./builds ./elm-stuff $(OBJ)
+	rm -rf ./builds ./src/ui/build ./src/ui/dist $(OBJ)
 	# Legacy deliverables and artefacts.
-	rm -rf ./node_modules ./npm-debug.log* ./src/js/build.js
+	rm -rf ./node_modules ./npm-debug.log* ./src/js/build.js ./elm-stuff ./src/js/CronPixie.js

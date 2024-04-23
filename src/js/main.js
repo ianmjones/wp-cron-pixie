@@ -1,4 +1,9 @@
-document.addEventListener( 'DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
+	import('./ui.js?ver=' + CronPixie.version).then((CronPixieUI) => {
+		CronPixieUI.main(5);
+	});
+
+	/*
 	var $mountPoint = document.getElementById( 'cron-pixie-main' );
 	var app = Elm.CronPixie.init( {
 		node: $mountPoint,
@@ -12,4 +17,5 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			auto_refresh: CronPixie.auto_refresh
 		}
 	} );
-} );
+	*/
+});
