@@ -1,10 +1,9 @@
-import internal/data
+import internal/data.{Model, decode_flags}
 import lustre
 import lustre/effect
 import lustre/element.{text}
 import lustre/element/html.{div, p}
 
-// TODO: Use JSON object for flags.
 pub fn main(flags: String) {
   let app = lustre.application(init, update, view)
   let assert Ok(_) = lustre.start(app, "#cron-pixie-main", flags)
@@ -12,9 +11,17 @@ pub fn main(flags: String) {
   Nil
 }
 
-// TODO: Use JSON object for flags.
 fn init(flags: String) -> #(data.Model, effect.Effect(Msg)) {
-  #(data.decode_flags(flags), effect.none())
+  let model = case decode_flags(flags) {
+    Ok(f) ->
+      Model(
+        example_events: f.example_events,
+        auto_refresh: f.auto_refresh,
+        refreshing: False,
+      )
+    _ -> Model(example_events: False, auto_refresh: False, refreshing: False)
+  }
+  #(model, effect.none())
 }
 
 type Msg

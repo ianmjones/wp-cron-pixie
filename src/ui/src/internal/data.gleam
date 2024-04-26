@@ -1,7 +1,6 @@
-import gleam/dynamic
+import gleam/dynamic.{type DecodeError, type Dynamic, decode2, field, string}
 import gleam/json
 import gleam/option.{type Option}
-import gleam/result
 
 // TODO: Create more complex Model.
 pub type Model {
@@ -63,26 +62,35 @@ pub type Divider {
   Divider(name: String, val: Int)
 }
 
-// TODO: Decode JSON object flags to Model.
-pub fn decode_flags(flags: String) -> Model {
-  Model(
-    example_events: decode_json_string_field_to_bool(flags, "example_events"),
-    auto_refresh: decode_json_string_field_to_bool(flags, "auto_refresh"),
-    refreshing: False,
+pub type Flags {
+  Flags(
+    //strings: Strings,
+    //admin_url: String,
+    //nonce: String,
+    //timer_period: Float,
+    //schedules: List(Schedule),
+    example_events: Bool,
+    auto_refresh: Bool,
   )
 }
 
-/// Decode a JSON string field to bool.
-pub fn decode_json_string_field_to_bool(
-  json_string: String,
-  field_name: String,
-) -> Bool {
+// TODO: Decode JSON string to Flags.
+pub fn decode_flags(flags: String) -> Result(Flags, json.DecodeError) {
   let decoder =
-    dynamic.decode1(Ok, dynamic.field(field_name, of: dynamic.string))
-  let val = json.decode(from: json_string, using: decoder)
+    decode2(
+      Flags,
+      field("example_events", of: int_string_to_bool),
+      field("auto_refresh", of: int_string_to_bool),
+    )
+  json.decode(from: flags, using: decoder)
+}
 
-  case result.flatten(val) {
-    Ok("1") -> True
-    _ -> False
+/// Decode a JSON string field to bool.
+pub fn int_string_to_bool(val: Dynamic) -> Result(Bool, List(DecodeError)) {
+  let ok = string(val)
+
+  case ok {
+    Ok("1") -> Ok(True)
+    _ -> Ok(False)
   }
 }
