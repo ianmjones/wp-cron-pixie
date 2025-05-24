@@ -1,3 +1,5 @@
+**NOTE:** Moved to [https://git.sr.ht/~ianmjones/wp-cron-pixie](https://git.sr.ht/~ianmjones/wp-cron-pixie)
+
 # WP Cron Pixie
 
 A little dashboard widget to view the WordPress cron, and run an event now rather than later.
